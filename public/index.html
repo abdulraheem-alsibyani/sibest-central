@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sibest Central</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0b0f;
+    --surface: #111318;
+    --surface2: #181b22;
+    --border: #1e2230;
+    --border2: #252a3a;
+    --text: #e8eaf0;
+    --muted: #5a6180;
+    --accent: #4f6ef7;
+    --accent2: #7c3aed;
+    --green: #22c55e;
+    --red: #ef4444;
+    --amber: #f59e0b;
+    --cyan: #06b6d4;
+    --pink: #ec4899;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'DM Mono',monospace; min-height:100vh; overflow-x:hidden; }
+  body::before {
+    content:''; position:fixed; inset:0; z-index:0;
+    background-image: linear-gradient(rgba(79,110,247,0.03) 1px,transparent 1px), linear-gradient(90deg,rgba(79,110,247,0.03) 1px,transparent 1px);
+    background-size:40px 40px; pointer-events:none;
+  }
+
+  /* SETUP */
+  #setup-screen { position:fixed; inset:0; z-index:100; background:var(--bg); display:flex; align-items:center; justify-content:center; flex-direction:column; gap:24px; }
+  #setup-screen h1 { font-family:'Inter',sans-serif; font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,var(--accent),var(--cyan)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; letter-spacing:-1px; }
+  #setup-screen p { color:var(--muted); font-size:0.85rem; text-align:center; max-width:420px; line-height:1.7; }
+  .setup-box { background:var(--surface); border:1px solid var(--border2); border-radius:16px; padding:32px; width:100%; max-width:460px; display:flex; flex-direction:column; gap:16px; }
+  .setup-box label { font-size:0.72rem; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; }
+  .setup-box input { background:var(--surface2); border:1px solid var(--border2); color:var(--text); font-family:'DM Mono',monospace; font-size:0.85rem; padding:12px 16px; border-radius:8px; outline:none; width:100%; transition:border-color 0.2s; }
+  .setup-box input:focus { border-color:var(--accent); }
+  .setup-box input::placeholder { color:var(--muted); }
+  .btn-primary { background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; border:none; padding:14px 24px; border-radius:8px; font-family:'Inter',sans-serif; font-weight:700; font-size:0.95rem; cursor:pointer; transition:opacity 0.2s,transform 0.1s; letter-spacing:0.02em; }
+  .btn-primary:hover { opacity:0.9; transform:translateY(-1px); }
+  .btn-primary:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+  .setup-hint { font-size:0.72rem; color:var(--muted); line-height:1.7; background:var(--surface2); padding:12px 16px; border-radius:8px; border-left:3px solid var(--accent); }
+
+  /* APP */
+  #app { display:none; position:relative; z-index:1; }
+
+  /* TOPBAR */
+  .topbar { position:sticky; top:0; z-index:50; background:rgba(10,11,15,0.92); backdrop-filter:blur(20px); border-bottom:1px solid var(--border); padding:0 32px; height:64px; display:flex; align-items:center; gap:20px; }
+  .topbar-logo { font-family:'Inter',sans-serif; font-weight:800; font-size:1.1rem; background:linear-gradient(135deg,var(--accent),var(--cyan)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; letter-spacing:-0.5px; white-space:nowrap; }
+  .topbar-divider { width:1px; height:28px; background:var(--border); }
+  .search-wrap { flex:1; max-width:380px; position:relative; }
+  .search-wrap input { width:100%; background:var(--surface); border:1px solid var(--border); color:var(--text); font-family:'DM Mono',monospace; font-size:0.8rem; padding:8px 12px 8px 36px; border-radius:8px; outline:none; transition:border-color 0.2s; }
+  .search-wrap input:focus { border-color:var(--accent); }
+  .search-wrap input::placeholder { color:var(--muted); }
+  .search-icon { position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:14px; }
+  .topbar-right { margin-left:auto; display:flex; align-items:center; gap:12px; }
+  .account-badge { background:var(--surface); border:1px solid var(--border); padding:6px 12px; border-radius:8px; font-size:0.72rem; color:var(--muted); display:flex; align-items:center; gap:6px; }
+  .account-badge span { color:var(--text); }
+  .btn-sm { background:var(--surface); border:1px solid var(--border); color:var(--text); padding:6px 12px; border-radius:8px; font-family:'DM Mono',monospace; font-size:0.72rem; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:6px; }
+  .btn-sm:hover { border-color:var(--accent); }
+  .btn-sm.danger:hover { border-color:var(--red); color:var(--red); }
+
+  /* TABS */
+  .tabs { padding:16px 32px 0; display:flex; gap:4px; border-bottom:1px solid var(--border); }
+  .tab { padding:10px 20px; border-radius:8px 8px 0 0; font-family:'Inter',sans-serif; font-size:0.8rem; font-weight:600; cursor:pointer; color:var(--muted); border:1px solid transparent; border-bottom:none; transition:all 0.2s; letter-spacing:0.03em; position:relative; bottom:-1px; background:transparent; }
+  .tab.active { background:var(--surface); color:var(--text); border-color:var(--border); border-bottom-color:var(--surface); }
+  .tab:hover:not(.active) { color:var(--text); }
+
+  /* CONTENT */
+  .content { padding:28px 32px; }
+
+  /* STATS */
+  .stats-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:16px; margin-bottom:28px; }
+  .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px; position:relative; overflow:hidden; }
+  .stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+  .stat-card.blue::before { background:var(--accent); }
+  .stat-card.green::before { background:var(--green); }
+  .stat-card.red::before { background:var(--red); }
+  .stat-card.amber::before { background:var(--amber); }
+  .stat-card.cyan::before { background:var(--cyan); }
+  .stat-label { font-size:0.68rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:10px; }
+  .stat-value { font-family:'Inter',sans-serif; font-size:2rem; font-weight:800; line-height:1; }
+  .stat-sub { font-size:0.7rem; color:var(--muted); margin-top:6px; }
+
+  /* ALERTS */
+  .alerts-bar { background:rgba(239,68,68,0.07); border:1px solid rgba(239,68,68,0.2); border-radius:10px; padding:12px 16px; margin-bottom:24px; display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .alerts-label { font-size:0.72rem; color:var(--red); font-weight:500; letter-spacing:0.08em; text-transform:uppercase; }
+  .alert-chip { background:rgba(239,68,68,0.12); color:var(--red); padding:4px 10px; border-radius:20px; font-size:0.7rem; border:1px solid rgba(239,68,68,0.2); cursor:pointer; transition:background 0.2s; }
+  .alert-chip:hover { background:rgba(239,68,68,0.2); }
+  .alert-chip.warn { background:rgba(245,158,11,0.12); color:var(--amber); border-color:rgba(245,158,11,0.2); }
+  .alert-chip.warn:hover { background:rgba(245,158,11,0.2); }
+
+  /* FILTERS */
+  .filters-row { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; align-items:center; }
+  .filter-label { font-size:0.72rem; color:var(--muted); letter-spacing:0.08em; text-transform:uppercase; }
+  .filter-chip { background:var(--surface); border:1px solid var(--border); color:var(--muted); padding:5px 12px; border-radius:20px; font-size:0.72rem; cursor:pointer; transition:all 0.15s; font-family:'DM Mono',monospace; }
+  .filter-chip.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .filter-chip:hover:not(.active) { border-color:var(--border2); color:var(--text); }
+
+  /* SECTION HEADER */
+  .section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .section-title { font-family:'Inter',sans-serif; font-size:0.85rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.12em; }
+  .section-count { font-size:0.72rem; color:var(--muted); background:var(--surface2); padding:2px 8px; border-radius:20px; border:1px solid var(--border); }
+
+  /* PROJECTS GRID */
+  .projects-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:16px; }
+  .project-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:20px; cursor:pointer; transition:all 0.2s; position:relative; overflow:hidden; }
+  .project-card:hover { border-color:var(--accent); transform:translateY(-2px); box-shadow:0 8px 30px rgba(79,110,247,0.1); }
+  .project-card.has-alert { border-color:rgba(239,68,68,0.3); }
+  .project-card-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:14px; gap:10px; }
+  .project-name { font-family:'Inter',sans-serif; font-size:0.95rem; font-weight:700; line-height:1.3; }
+  .project-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; margin-top:5px; }
+  .progress-label { display:flex; justify-content:space-between; font-size:0.7rem; color:var(--muted); margin-bottom:6px; }
+  .progress-bar { height:4px; background:var(--surface2); border-radius:4px; overflow:hidden; }
+  .progress-fill { height:100%; border-radius:4px; transition:width 0.6s ease; }
+  .project-meta { display:flex; gap:12px; flex-wrap:wrap; margin-top:14px; }
+  .meta-chip { display:flex; align-items:center; gap:5px; font-size:0.68rem; color:var(--muted); }
+  .meta-dot { width:6px; height:6px; border-radius:50%; }
+  .badge { font-size:0.65rem; padding:2px 7px; border-radius:10px; font-weight:600; letter-spacing:0.04em; }
+  .badge-red { background:rgba(239,68,68,0.15); color:var(--red); }
+  .badge-amber { background:rgba(245,158,11,0.15); color:var(--amber); }
+  .badge-green { background:rgba(34,197,94,0.15); color:var(--green); }
+  .alert-dot { position:absolute; top:14px; right:14px; width:8px; height:8px; border-radius:50%; background:var(--red); box-shadow:0 0 6px var(--red); }
+
+  /* TASK LIST */
+  .task-list { display:flex; flex-direction:column; gap:6px; }
+  .task-item { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:12px 14px; display:flex; align-items:center; gap:12px; transition:border-color 0.15s; }
+  .task-item:hover { border-color:var(--border2); }
+  .task-check { width:16px; height:16px; border-radius:50%; border:2px solid var(--border2); flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+  .task-check.done { background:var(--green); border-color:var(--green); }
+  .task-check.done::after { content:'✓'; color:#fff; font-size:9px; }
+  .task-title { flex:1; font-size:0.8rem; line-height:1.4; }
+  .task-title.done-text { text-decoration:line-through; color:var(--muted); }
+  .task-assignee { font-size:0.68rem; color:var(--muted); background:var(--surface); padding:2px 8px; border-radius:10px; border:1px solid var(--border); white-space:nowrap; }
+  .task-due { font-size:0.68rem; white-space:nowrap; }
+  .task-due.overdue { color:var(--red); }
+  .task-due.soon { color:var(--amber); }
+  .task-due.ok { color:var(--muted); }
+  .task-due.nodate { color:var(--muted); opacity:0.45; }
+
+  /* PEOPLE */
+  .people-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; }
+  .person-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:20px; transition:all 0.2s; }
+  .person-card:hover { border-color:var(--border2); }
+  .person-card.overloaded { border-color:rgba(239,68,68,0.3); }
+  .person-header { display:flex; align-items:center; gap:14px; margin-bottom:16px; }
+  .avatar { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-family:'Inter',sans-serif; font-weight:800; font-size:1rem; flex-shrink:0; }
+  .person-name { font-family:'Inter',sans-serif; font-weight:700; font-size:0.9rem; }
+  .person-email { font-size:0.68rem; color:var(--muted); margin-top:2px; }
+  .workload-label { display:flex; justify-content:space-between; font-size:0.68rem; color:var(--muted); margin-bottom:5px; }
+  .workload-fill { height:6px; border-radius:4px; transition:width 0.6s; }
+  .person-stats { display:flex; gap:12px; margin-top:14px; }
+  .person-stat { text-align:center; flex:1; }
+  .person-stat-val { font-family:'Inter',sans-serif; font-weight:700; font-size:1.1rem; }
+  .person-stat-lbl { font-size:0.65rem; color:var(--muted); margin-top:2px; }
+
+  /* DETAIL PANEL */
+  .detail-overlay { display:none; position:fixed; inset:0; z-index:60; background:rgba(0,0,0,0.7); backdrop-filter:blur(8px); align-items:flex-start; justify-content:flex-end; }
+  .detail-overlay.open { display:flex; }
+  .detail-panel { background:var(--surface); width:520px; max-width:95vw; height:100vh; overflow-y:auto; border-left:1px solid var(--border); padding:28px; display:flex; flex-direction:column; gap:20px; animation:slideIn 0.25s ease; }
+  @keyframes slideIn { from { transform:translateX(40px); opacity:0; } to { transform:none; opacity:1; } }
+  .detail-header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+  .detail-title { font-family:'Inter',sans-serif; font-size:1.2rem; font-weight:800; line-height:1.3; }
+  .detail-sub { font-size:0.72rem; color:var(--muted); margin-top:4px; }
+  .close-btn { background:var(--surface2); border:1px solid var(--border); color:var(--muted); width:32px; height:32px; border-radius:8px; cursor:pointer; font-size:16px; flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:all 0.15s; }
+  .close-btn:hover { border-color:var(--red); color:var(--red); }
+  .detail-tabs { display:flex; gap:6px; }
+  .detail-tab { padding:6px 14px; border-radius:6px; font-size:0.75rem; cursor:pointer; color:var(--muted); border:1px solid transparent; font-family:'Inter',sans-serif; font-weight:600; transition:all 0.15s; }
+  .detail-tab.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .detail-tab:hover:not(.active) { color:var(--text); border-color:var(--border); }
+
+  /* LOADING / EMPTY / ERROR */
+  .loading { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px 20px; gap:16px; }
+  .spinner { width:36px; height:36px; border:3px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.8s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .loading-text { font-size:0.8rem; color:var(--muted); }
+  .empty { padding:40px; text-align:center; color:var(--muted); font-size:0.8rem; }
+  .error-box { background:rgba(239,68,68,0.07); border:1px solid rgba(239,68,68,0.2); border-radius:10px; padding:20px; color:var(--red); font-size:0.8rem; line-height:1.7; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width:6px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:var(--border2); border-radius:4px; }
+
+  mark { background:rgba(79,110,247,0.3); color:var(--text); border-radius:2px; padding:0 2px; }
+
+  .hide-person-btn {
+    background: none; border: none; cursor: pointer;
+    color: var(--muted); font-size: 1rem; padding: 2px 6px;
+    border-radius: 4px; opacity: 0.5;
+  }
+  .hide-person-btn:hover { opacity: 1; background: var(--surface2); }
+
+  @media(max-width:768px) {
+    .topbar { padding:0 16px; }
+    .content { padding:16px; }
+    .tabs { padding:12px 16px 0; }
+    .projects-grid, .people-grid { grid-template-columns:1fr; }
+    .stats-row { grid-template-columns:repeat(2,1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- SETUP -->
+<div id="setup-screen">
+  <div style="text-align:center">
+    <div style="font-size:2.8rem;margin-bottom:8px">⌘</div>
+    <h1>Basecamp Sibest Central</h1>
+    <p>Enter your Basecamp credentials to load your projects, tasks, and team overview.</p>
+  </div>
+  <div class="setup-box">
+    <label>Account ID</label>
+    <input type="text" id="account-id" placeholder="e.g. 1234567" />
+    <label>Access Token</label>
+    <input type="password" id="api-token" placeholder="Paste your OAuth access token" />
+    <div class="setup-hint">
+      Your <strong>Account ID</strong> is in your Basecamp URL:<br>
+      basecamp.com/<strong style="color:var(--accent)">1234567</strong>/projects<br><br>
+      Your <strong>Access Token</strong> is the one you just generated via OAuth.
+    </div>
+    <button class="btn-primary" id="connect-btn" onclick="connect()">Connect to Basecamp →</button>
+    <div id="connect-error" style="color:var(--red);font-size:0.75rem;display:none;line-height:1.6"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-logo">⌘ Sibest Central</div>
+    <div class="topbar-divider"></div>
+    <div class="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input type="text" id="search-input" placeholder="Search projects, tasks, people..." oninput="onSearch(this.value)" />
+    </div>
+    <div class="topbar-right">
+      <div class="account-badge">Account <span id="account-name">—</span></div>
+      <span id="last-refresh" style="font-size:0.68rem;color:var(--muted)"></span>
+      <button class="btn-sm" onclick="refreshData()">↻ Refresh</button>
+      <button class="btn-sm danger" onclick="disconnect()">Disconnect</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('projects',this)">Projects</div>
+    <div class="tab" onclick="switchTab('people',this)">Team & Workload</div>
+    <div class="tab" onclick="switchTab('alerts',this)">Alerts <span id="alert-tab-count" style="color:var(--red)"></span></div>
+  </div>
+
+  <div class="content">
+    <div id="tab-projects">
+      <div class="stats-row" id="project-stats"></div>
+      <div id="alerts-bar"></div>
+      <div class="filters-row" id="project-filters"></div>
+      <div class="section-header">
+        <div class="section-title">All Projects</div>
+        <div class="section-count" id="project-count"></div>
+      </div>
+      <div class="projects-grid" id="projects-grid">
+        <div class="loading"><div class="spinner"></div><div class="loading-text">Loading…</div></div>
+      </div>
+    </div>
+
+    <div id="tab-people" style="display:none">
+      <div class="stats-row" id="people-stats"></div>
+      <div class="filters-row" id="people-filters"></div>
+      <div class="section-header">
+        <div class="section-title">Team Members</div>
+        <div class="section-count" id="people-count"></div>
+      </div>
+      <div class="people-grid" id="people-grid"></div>
+    </div>
+
+    <div id="tab-alerts" style="display:none">
+      <div id="full-alerts"></div>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL PANEL -->
+<div class="detail-overlay" id="detail-overlay" onclick="maybeCloseDetail(event)">
+  <div class="detail-panel">
+    <div class="detail-header">
+      <div>
+        <div class="detail-title" id="detail-title"></div>
+        <div class="detail-sub" id="detail-sub"></div>
+      </div>
+      <button class="close-btn" onclick="closeDetail()">✕</button>
+    </div>
+    <div class="detail-tabs">
+      <div class="detail-tab active" onclick="switchDetailTab('open',this)">Open Tasks</div>
+      <div class="detail-tab" onclick="switchDetailTab('done',this)">Completed</div>
+    </div>
+    <div id="detail-body"></div>
+  </div>
+</div>
+
+<script>
+const PROXY = 'http://localhost:3000/api';
+const COLORS = ['#4f6ef7','#7c3aed','#06b6d4','#ec4899','#f59e0b','#22c55e','#ef4444','#8b5cf6','#14b8a6','#f97316'];
+const AVATAR_BG = [['#4f6ef7','#e0e7ff'],['#7c3aed','#ede9fe'],['#06b6d4','#cffafe'],['#ec4899','#fce7f3'],['#f59e0b','#fef3c7'],['#22c55e','#dcfce7']];
+
+let S = { token:'', accountId:'', projects:[], todos:{}, people:[], search:'', projectFilter:'all', peopleFilter:'all', detailId:null, detailTab:'open' };
+
+function getExcluded() {
+  return JSON.parse(localStorage.getItem('excluded_people_' + S.accountId) || '[]');
+}
+function setExcluded(ids) {
+  localStorage.setItem('excluded_people_' + S.accountId, JSON.stringify(ids));
+}
+function toggleExclude(id) {
+  const ex = getExcluded();
+  const idx = ex.indexOf(id);
+  if (idx >= 0) ex.splice(idx, 1); else ex.push(id);
+  setExcluded(ex);
+  render();
+}
+
+let refreshTimer = null;
+let lastRefreshTime = null;
+const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
+
+// ── API ──────────────────────────────────────────────
+async function api(path) {
+  const res = await fetch(PROXY + path, {
+    headers: { 'X-Basecamp-Token': S.token, 'X-Basecamp-Account': S.accountId }
+  });
+  if (!res.ok) throw new Error(`API ${res.status}: ${path}`);
+  return res.json();
+}
+
+async function apiAll(path) {
+  let results = [];
+  let url = path;
+  while (url) {
+    const res = await fetch(PROXY + url, {
+      headers: { 'X-Basecamp-Token': S.token, 'X-Basecamp-Account': S.accountId }
+    });
+    if (!res.ok) throw new Error(`API ${res.status}: ${url}`);
+    const data = await res.json();
+    results = results.concat(data);
+    const link = res.headers.get('Link');
+    url = null;
+    if (link) {
+      const match = link.match(/<([^>]+)>;\s*rel="next"/);
+      if (match) {
+        const nextUrl = new URL(match[1]);
+        url = nextUrl.pathname.replace(/^\/api/, '') + nextUrl.search;
+      }
+    }
+  }
+  return results;
+}
+
+// ── CONNECT ──────────────────────────────────────────
+async function connect() {
+  const token = document.getElementById('api-token').value.trim();
+  const accountId = document.getElementById('account-id').value.trim();
+  const errEl = document.getElementById('connect-error');
+  errEl.style.display = 'none';
+  if (!token || !accountId) { showErr('Please enter both your Account ID and Access Token.'); return; }
+  const btn = document.getElementById('connect-btn');
+  btn.disabled = true; btn.textContent = 'Connecting…';
+  S.token = token; S.accountId = accountId;
+  try {
+    await api('/projects.json'); // test call
+    document.getElementById('setup-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    await loadAll();
+  } catch(e) {
+    showErr('Connection failed. Check your Account ID and Token.\n(' + e.message + ')');
+    btn.disabled = false; btn.textContent = 'Connect to Basecamp →';
+  }
+}
+function showErr(msg) { const e = document.getElementById('connect-error'); e.textContent = msg; e.style.display = 'block'; }
+function disconnect() {
+  if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
+  S = { token:'', accountId:'', projects:[], todos:{}, people:[], search:'', projectFilter:'all', peopleFilter:'all', detailId:null, detailTab:'open' };
+  document.getElementById('setup-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('api-token').value = '';
+  document.getElementById('account-id').value = '';
+  document.getElementById('connect-btn').disabled = false;
+  document.getElementById('connect-btn').textContent = 'Connect to Basecamp →';
+}
+
+// ── LOAD DATA ─────────────────────────────────────────
+async function loadAll() {
+  document.getElementById('projects-grid').innerHTML = '<div class="loading"><div class="spinner"></div><div class="loading-text">Fetching Basecamp data…</div></div>';
+  try {
+    const [projects, people] = await Promise.all([
+      apiAll('/projects.json'),
+      apiAll('/people.json').catch(() => [])
+    ]);
+    S.projects = projects;
+    S.people = people;
+    if (people.length) document.getElementById('account-name').textContent = people[0]?.company?.name || S.accountId;
+    // Load todos for each project in parallel
+    await Promise.all(S.projects.map(p => loadTodos(p)));
+    render();
+    lastRefreshTime = Date.now();
+    startAutoRefresh();
+    updateLastRefreshDisplay();
+  } catch(e) {
+    document.getElementById('projects-grid').innerHTML = `<div class="error-box">❌ Failed to load: ${e.message}<br>Make sure the server is running and your credentials are correct.</div>`;
+  }
+}
+
+async function loadTodos(project) {
+  try {
+    if (!project.dock) {
+      const fullProject = await api(`/projects/${project.id}.json`);
+      project.dock = fullProject.dock;
+    }
+    const todosetDock = (project.dock || []).find(d => d.name === 'todoset' && d.enabled);
+    if (!todosetDock) { S.todos[project.id] = []; return; }
+    const todosetId = todosetDock.id;
+    const lists = await apiAll(`/buckets/${project.id}/todosets/${todosetId}/todolists.json`);
+    let all = [];
+    for (const list of lists) {
+      const [open, done] = await Promise.all([
+        apiAll(`/buckets/${project.id}/todolists/${list.id}/todos.json`).catch(()=>[]),
+        apiAll(`/buckets/${project.id}/todolists/${list.id}/todos.json?completed=true`).catch(()=>[])
+      ]);
+      all = all.concat(open, done);
+      // Fetch grouped todos
+      const groups = await apiAll(`/buckets/${project.id}/todolists/${list.id}/groups.json`).catch(()=>[]);
+      for (const group of groups) {
+        const [gOpen, gDone] = await Promise.all([
+          apiAll(`/buckets/${project.id}/todolists/${group.id}/todos.json`).catch(()=>[]),
+          apiAll(`/buckets/${project.id}/todolists/${group.id}/todos.json?completed=true`).catch(()=>[])
+        ]);
+        all = all.concat(gOpen, gDone);
+      }
+    }
+    S.todos[project.id] = all;
+  } catch(e) {
+    console.warn(`Failed to load todos for project ${project.id}:`, e);
+    S.todos[project.id] = [];
+  }
+}
+
+async function refreshData() { await loadAll(); }
+
+function startAutoRefresh() {
+  if (refreshTimer) clearInterval(refreshTimer);
+  refreshTimer = setInterval(() => loadAll(), REFRESH_INTERVAL);
+}
+
+function updateLastRefreshDisplay() {
+  const el = document.getElementById('last-refresh');
+  if (!el || !lastRefreshTime) return;
+  const mins = Math.floor((Date.now() - lastRefreshTime) / 60000);
+  el.textContent = mins < 1 ? 'Just now' : `${mins}m ago`;
+}
+setInterval(updateLastRefreshDisplay, 30000);
+
+// ── COMPUTED ──────────────────────────────────────────
+const getTodos = id => S.todos[id] || [];
+const getOpen  = id => getTodos(id).filter(t => !t.completed);
+const getDone  = id => getTodos(id).filter(t => t.completed);
+const getProg  = id => { const a = getTodos(id); return a.length ? Math.round(getDone(id).length/a.length*100) : 0; };
+const isOverdue = t => !t.completed && t.due_on && new Date(t.due_on) < new Date(new Date().toDateString());
+const daysSince = d => Math.floor((Date.now()-new Date(d))/86400000);
+const inactive  = p => daysSince(p.updated_at) >= 7;
+
+function getAlerts() {
+  const a = [];
+  S.projects.forEach(p => {
+    getOpen(p.id).filter(t => isOverdue(t) && daysSince(t.due_on)>=3).forEach(t => a.push({type:'overdue',project:p,task:t,msg:`"${t.title}" — overdue by ${daysSince(t.due_on)}d`}));
+    getOpen(p.id).filter(t => !t.due_on).forEach(t => a.push({type:'nodate',project:p,task:t,msg:`"${t.title}" — no due date`}));
+    if(inactive(p)) a.push({type:'inactive',project:p,msg:`"${p.name}" — no activity for ${daysSince(p.updated_at)} days`});
+  });
+  const excludedIds = getExcluded();
+  S.people.filter(p => !excludedIds.includes(p.id)).forEach(person => {
+    const n = openForPerson(person.id).length;
+    if(n>=10) a.push({type:'overloaded',person,msg:`${person.name} — ${n} open tasks`});
+  });
+  return a;
+}
+
+const openForPerson = id => { const r=[]; S.projects.forEach(p=>getOpen(p.id).forEach(t=>{ if((t.assignees||[]).some(a=>a.id===id)) r.push(t); })); return r; };
+const allForPerson  = id => { const r=[]; S.projects.forEach(p=>getTodos(p.id).forEach(t=>{ if((t.assignees||[]).some(a=>a.id===id)) r.push(t); })); return r; };
+const overdueForPerson = id => openForPerson(id).filter(t=>isOverdue(t)).length;
+
+// ── SEARCH ────────────────────────────────────────────
+function onSearch(q) { S.search = q.toLowerCase(); renderProjects(); renderPeople(); }
+function hl(text, q) {
+  const s = String(text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  if(!q) return s;
+  return s.replace(new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),'<mark>$1</mark>');
+}
+
+// ── TABS ──────────────────────────────────────────────
+function switchTab(name, el) {
+  S.activeTab = name;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); el.classList.add('active');
+  ['projects','people','alerts'].forEach(t => document.getElementById('tab-'+t).style.display = t===name?'block':'none');
+  if(name==='alerts') renderFullAlerts();
+}
+
+// ── RENDER ALL ────────────────────────────────────────
+function render() {
+  renderProjectStats(); renderAlertsBar(); renderProjectFilters(); renderProjects();
+  renderPeopleStats(); renderPeopleFilters(); renderPeople();
+  const n = getAlerts().length;
+  document.getElementById('alert-tab-count').textContent = n ? `(${n})` : '';
+}
+
+// ── PROJECT STATS ─────────────────────────────────────
+function renderProjectStats() {
+  const totalOpen = S.projects.reduce((s,p)=>s+getOpen(p.id).length,0);
+  const totalDone = S.projects.reduce((s,p)=>s+getDone(p.id).length,0);
+  const overdue   = S.projects.reduce((s,p)=>s+getOpen(p.id).filter(t=>isOverdue(t)).length,0);
+  const inact     = S.projects.filter(p=>inactive(p)).length;
+  document.getElementById('project-stats').innerHTML = `
+    <div class="stat-card blue"><div class="stat-label">Projects</div><div class="stat-value">${S.projects.length}</div><div class="stat-sub">${S.people.filter(p=>!getExcluded().includes(p.id)).length} team members</div></div>
+    <div class="stat-card green"><div class="stat-label">Open Tasks</div><div class="stat-value">${totalOpen}</div><div class="stat-sub">across all projects</div></div>
+    <div class="stat-card amber"><div class="stat-label">Completed</div><div class="stat-value">${totalDone}</div><div class="stat-sub">tasks done</div></div>
+    <div class="stat-card red"><div class="stat-label">Overdue</div><div class="stat-value">${overdue}</div><div class="stat-sub">tasks past due</div></div>
+    <div class="stat-card cyan"><div class="stat-label">Inactive</div><div class="stat-value">${inact}</div><div class="stat-sub">projects 7d+ quiet</div></div>`;
+}
+
+// ── ALERTS BAR ────────────────────────────────────────
+function renderAlertsBar() {
+  const alerts = getAlerts();
+  if(!alerts.length) { document.getElementById('alerts-bar').innerHTML=''; return; }
+  const od = alerts.filter(a=>a.type==='overdue').length;
+  const ia = alerts.filter(a=>a.type==='inactive').length;
+  const nd = alerts.filter(a=>a.type==='nodate').length;
+  const ol = alerts.filter(a=>a.type==='overloaded').length;
+  document.getElementById('alerts-bar').innerHTML = `<div class="alerts-bar">
+    <span class="alerts-label">⚠ Alerts</span>
+    ${od?`<span class="alert-chip">🔴 ${od} overdue</span>`:''}
+    ${ia?`<span class="alert-chip warn">⏸ ${ia} inactive projects</span>`:''}
+    ${nd?`<span class="alert-chip warn">📅 ${nd} missing due dates</span>`:''}
+    ${ol?`<span class="alert-chip">👤 ${ol} overloaded</span>`:''}
+    <span style="margin-left:auto;font-size:0.68rem;color:var(--muted);cursor:pointer" onclick="switchTab('alerts',document.querySelectorAll('.tab')[2])">View all →</span>
+  </div>`;
+}
+
+// ── PROJECT FILTERS ───────────────────────────────────
+function renderProjectFilters() {
+  document.getElementById('project-filters').innerHTML = `
+    <span class="filter-label">Filter:</span>
+    <div class="filter-chip ${S.projectFilter==='all'?'active':''}" onclick="setPF('all',this)">All</div>
+    <div class="filter-chip ${S.projectFilter==='active'?'active':''}" onclick="setPF('active',this)">Active</div>
+    <div class="filter-chip ${S.projectFilter==='inactive'?'active':''}" onclick="setPF('inactive',this)">Inactive</div>
+    <div class="filter-chip ${S.projectFilter==='overdue'?'active':''}" onclick="setPF('overdue',this)">Has Overdue</div>`;
+}
+function setPF(v) { S.projectFilter=v; renderProjectFilters(); renderProjects(); }
+
+// ── PROJECTS ──────────────────────────────────────────
+function renderProjects() {
+  let list = S.projects;
+  if(S.projectFilter==='active')   list = list.filter(p=>!inactive(p));
+  if(S.projectFilter==='inactive') list = list.filter(p=>inactive(p));
+  if(S.projectFilter==='overdue')  list = list.filter(p=>getOpen(p.id).some(t=>isOverdue(t)));
+  const q = S.search;
+  if(q) list = list.filter(p=>p.name.toLowerCase().includes(q)||getTodos(p.id).some(t=>t.title.toLowerCase().includes(q)));
+  document.getElementById('project-count').textContent = list.length + ' projects';
+  if(!list.length) { document.getElementById('projects-grid').innerHTML='<div class="empty">No projects match.</div>'; return; }
+  document.getElementById('projects-grid').innerHTML = list.map((p,i)=>{
+    const open=getOpen(p.id).length, done=getDone(p.id).length, prog=getProg(p.id);
+    const color=COLORS[i%COLORS.length], hasOD=getOpen(p.id).some(t=>isOverdue(t)), inact=inactive(p);
+    return `<div class="project-card ${hasOD?'has-alert':''}" onclick="openDetail(${p.id})">
+      ${hasOD?'<div class="alert-dot"></div>':''}
+      <div class="project-card-top">
+        <div class="project-name">${hl(p.name,q)}</div>
+        <div class="project-dot" style="background:${color}"></div>
+      </div>
+      <div class="progress-label"><span>${prog}% complete</span><span>${done}/${open+done}</span></div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${prog}%;background:${color}"></div></div>
+      <div class="project-meta">
+        <div class="meta-chip"><div class="meta-dot" style="background:var(--green)"></div>${open} open</div>
+        <div class="meta-chip"><div class="meta-dot" style="background:var(--muted)"></div>${done} done</div>
+        ${hasOD?'<span class="badge badge-red">Overdue</span>':''}
+        ${inact?'<span class="badge badge-amber">Inactive</span>':''}
+        <div class="meta-chip" style="margin-left:auto;font-size:0.65rem">${daysSince(p.updated_at)}d ago</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── PEOPLE STATS ──────────────────────────────────────
+function renderPeopleStats() {
+  const excluded = getExcluded();
+  const visiblePeople = S.people.filter(p => !excluded.includes(p.id));
+  const totalOpen = visiblePeople.reduce((s,p)=>s+openForPerson(p.id).length,0);
+  const overloaded = visiblePeople.filter(p=>openForPerson(p.id).length>=10).length;
+  document.getElementById('people-stats').innerHTML = `
+    <div class="stat-card blue"><div class="stat-label">Members</div><div class="stat-value">${visiblePeople.length}</div></div>
+    <div class="stat-card green"><div class="stat-label">Assigned Open</div><div class="stat-value">${totalOpen}</div></div>
+    <div class="stat-card red"><div class="stat-label">Overloaded</div><div class="stat-value">${overloaded}</div><div class="stat-sub">10+ open tasks</div></div>
+    <div class="stat-card amber"><div class="stat-label">Avg Tasks</div><div class="stat-value">${visiblePeople.length?Math.round(totalOpen/visiblePeople.length):0}</div><div class="stat-sub">per person</div></div>`;
+}
+
+// ── PEOPLE FILTERS ────────────────────────────────────
+function renderPeopleFilters() {
+  document.getElementById('people-filters').innerHTML = `
+    <span class="filter-label">Filter:</span>
+    <div class="filter-chip ${S.peopleFilter==='all'?'active':''}" onclick="setPersonF('all',this)">All</div>
+    <div class="filter-chip ${S.peopleFilter==='overloaded'?'active':''}" onclick="setPersonF('overloaded',this)">Overloaded (10+)</div>
+    <div class="filter-chip ${S.peopleFilter==='low'?'active':''}" onclick="setPersonF('low',this)">Low (0–3)</div>
+    <div class="filter-chip ${S.peopleFilter==='hidden'?'active':''}" onclick="setPersonF('hidden',this)">Hidden (${getExcluded().length})</div>`;
+}
+function setPersonF(v) { S.peopleFilter=v; renderPeopleFilters(); renderPeople(); }
+
+// ── PEOPLE ────────────────────────────────────────────
+function renderPeople() {
+  let list = S.people;
+  const excluded = getExcluded();
+  if (S.peopleFilter === 'hidden') {
+    list = list.filter(p => excluded.includes(p.id));
+  } else {
+    list = list.filter(p => !excluded.includes(p.id));
+  }
+  const q = S.search;
+  if(q) list=list.filter(p=>p.name.toLowerCase().includes(q)||(p.email_address||'').toLowerCase().includes(q));
+  if(S.peopleFilter==='overloaded') list=list.filter(p=>openForPerson(p.id).length>=10);
+  if(S.peopleFilter==='low')        list=list.filter(p=>openForPerson(p.id).length<=3);
+  document.getElementById('people-count').textContent = list.length+' members';
+  const maxT = Math.max(...list.map(p=>openForPerson(p.id).length),1);
+  document.getElementById('people-grid').innerHTML = list.map((person,i)=>{
+    const open=openForPerson(person.id).length, done=allForPerson(person.id).filter(t=>t.completed).length;
+    const [bg,fg]=AVATAR_BG[i%AVATAR_BG.length];
+    const initials=person.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const pct=Math.round(open/maxT*100), overloaded=open>=10;
+    const barColor=overloaded?'var(--red)':open>=6?'var(--amber)':'var(--green)';
+    return `<div class="person-card ${overloaded?'overloaded':''}">
+      <div class="person-header">
+        <div class="avatar" style="background:${bg};color:${fg}">${initials}</div>
+        <div style="flex:1">
+          <div class="person-name">${hl(person.name,q)}</div>
+          <div class="person-email">${hl(person.email_address||'',q)}</div>
+        </div>
+        ${overloaded?'<span class="badge badge-red">Overloaded</span>':''}
+        <button class="hide-person-btn" onclick="event.stopPropagation();toggleExclude(${person.id})" title="${excluded.includes(person.id) ? 'Show' : 'Hide'} member">${excluded.includes(person.id) ? '↩' : '✕'}</button>
+      </div>
+      <div class="workload-label"><span>Workload</span><span>${open} open tasks</span></div>
+      <div class="progress-bar"><div class="workload-fill" style="width:${pct}%;background:${barColor}"></div></div>
+      <div class="person-stats">
+        <div class="person-stat"><div class="person-stat-val" style="color:var(--green)">${open}</div><div class="person-stat-lbl">Open</div></div>
+        <div class="person-stat"><div class="person-stat-val" style="color:var(--muted)">${done}</div><div class="person-stat-lbl">Done</div></div>
+        <div class="person-stat"><div class="person-stat-val" style="color:var(--red)">${overdueForPerson(person.id)}</div><div class="person-stat-lbl">Overdue</div></div>
+      </div>
+    </div>`;
+  }).join('') || '<div class="empty">No members found.</div>';
+}
+
+// ── FULL ALERTS ───────────────────────────────────────
+function renderFullAlerts() {
+  const alerts = getAlerts();
+  if(!alerts.length) { document.getElementById('full-alerts').innerHTML='<div class="empty">✓ No alerts — everything looks good!</div>'; return; }
+  const counts = {overdue:0,nodate:0,inactive:0,overloaded:0};
+  alerts.forEach(a=>counts[a.type]++);
+  document.getElementById('full-alerts').innerHTML = `
+    <div class="stats-row" style="margin-bottom:20px">
+      <div class="stat-card red"><div class="stat-label">Overdue Tasks</div><div class="stat-value">${counts.overdue}</div></div>
+      <div class="stat-card amber"><div class="stat-label">No Due Date</div><div class="stat-value">${counts.nodate}</div></div>
+      <div class="stat-card amber"><div class="stat-label">Inactive Projects</div><div class="stat-value">${counts.inactive}</div></div>
+      <div class="stat-card red"><div class="stat-label">Overloaded People</div><div class="stat-value">${counts.overloaded}</div></div>
+    </div>
+    <div class="task-list">${alerts.map(a=>{
+      const icon={overdue:'🔴',nodate:'📅',inactive:'⏸',overloaded:'👤'}[a.type];
+      const label={overdue:'Overdue',nodate:'No Due Date',inactive:'Inactive',overloaded:'Overloaded'}[a.type];
+      const color=(a.type==='overdue'||a.type==='overloaded')?'var(--red)':'var(--amber)';
+      return `<div class="task-item">
+        <span style="font-size:1.1rem">${icon}</span>
+        <div class="task-title">${a.msg}</div>
+        ${a.project?`<div class="task-assignee">${a.project.name}</div>`:''}
+        <span class="badge" style="background:${color}22;color:${color}">${label}</span>
+      </div>`;
+    }).join('')}</div>`;
+}
+
+// ── DETAIL PANEL ──────────────────────────────────────
+function openDetail(id) {
+  const p = S.projects.find(x=>x.id===id); if(!p) return;
+  S.detailId=id; S.detailTab='open';
+  document.getElementById('detail-title').textContent = p.name;
+  document.getElementById('detail-sub').textContent = `${getOpen(id).length} open · ${getDone(id).length} done · ${getProg(id)}% complete`;
+  document.querySelectorAll('.detail-tab').forEach((t,i)=>{t.classList.toggle('active',i===0);});
+  document.getElementById('detail-overlay').classList.add('open');
+  renderDetailBody();
+}
+function maybeCloseDetail(e) { if(e.target===document.getElementById('detail-overlay')) closeDetail(); }
+function closeDetail() { document.getElementById('detail-overlay').classList.remove('open'); }
+function switchDetailTab(tab, el) {
+  S.detailTab=tab;
+  document.querySelectorAll('.detail-tab').forEach(t=>t.classList.remove('active')); el.classList.add('active');
+  renderDetailBody();
+}
+function renderDetailBody() {
+  const todos = S.detailTab==='open' ? getOpen(S.detailId) : getDone(S.detailId);
+  if(!todos.length) { document.getElementById('detail-body').innerHTML='<div class="empty">No tasks here.</div>'; return; }
+  document.getElementById('detail-body').innerHTML = `<div class="task-list">${todos.map(t=>{
+    let dc='ok', dt='';
+    if(t.due_on) {
+      const diff=Math.floor((new Date(t.due_on)-Date.now())/86400000);
+      if(isOverdue(t)) { dc='overdue'; dt=`${Math.abs(diff)}d overdue`; }
+      else if(diff<=3) { dc='soon'; dt=`Due in ${diff}d`; }
+      else { dt=`Due ${t.due_on}`; }
+    } else { dc='nodate'; dt='No due date'; }
+    return `<div class="task-item">
+      <div class="task-check ${t.completed?'done':''}"></div>
+      <div class="task-title ${t.completed?'done-text':''}">${t.title||''}</div>
+      ${(t.assignees||[]).length?`<div class="task-assignee">${t.assignees.map(a=>a.name).join(', ')}</div>`:'<div class="task-assignee" style="opacity:0.4">Unassigned</div>'}
+      <div class="task-due ${dc}">${dt}</div>
+    </div>`;
+  }).join('')}</div>`;
+}
+</script>
+</body>
+</html>

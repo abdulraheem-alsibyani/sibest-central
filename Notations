@@ -1,0 +1,12 @@
+Deliverables:
+  
+  1. Find when the first person was assigned a task in a project as well as due date
+  2. Filter which members to see and time periods (past week and specific dates)
+  3. Change hidden feature ( I want these specific 10 members that are hidden right now to be deleted from my UI completely)
+  4. Be able to view archived projects, stored in a seperate card
+  5. Remove project filters and make cards clickable
+  6. Project cards on top
+  7. Tasks info per project below
+  8. Medium load filter for members
+  9. Show what tasks and their states after clicking
+  10. Team members

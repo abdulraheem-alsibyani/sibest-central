@@ -1,0 +1,9 @@
+{
+  "name": "basecamp-command-center",
+  "version": "1.0.0",
+  "description": "Basecamp oversight dashboard",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}
