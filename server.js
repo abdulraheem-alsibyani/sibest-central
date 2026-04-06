@@ -87,6 +87,6 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log('\n✅ Sibest Central is running!');
-  console.log(`👉 Open your browser and go to: http://localhost:${PORT}\n`);
+  console.log('\n Sibest Central is online');
+  console.log(` Porting at: ${PORT}\n`);
 });
