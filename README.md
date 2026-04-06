@@ -13,9 +13,12 @@ https://launchpad.37signals.com/authorization/new?type=web_server&client_id=YOUR
 https://example.com?code=XXXXXX
 9. Go to terminal or command prompt and type the following command but replace with your Client ID, Client Secret, and code respectively:
 curl -X POST https://launchpad.37signals.com/authorization/token?type=web_server&client_id=YOUR_CLIENT_ID&client_secret=YOUR_CLIENT_SECRET&redirect_uri=https://example.com&code=Your_Code
-10. Make a folder where you want the program to sit
-11. Use cd in your terminal to get to that folder (for example cd Sibest-central)
-12. Once you're done, type git clone <repo url> (now you copied the project to file essentially and can receive updates with simple commands)
-13. In your terminal type: npm install (installs necessary files to run code)
-14. Type in a terminal window node server.js and don't close it as long as you want the website to keep running
-15. 
+THE RESULT WILL BE AN ACCESS TOKEN AND A REFRESH TOKEN COPY THEM SOMEWHERE AND DON'T SHARE WITH ANYONE
+11. Make a folder where you want the program to sit
+12. Use cd in your terminal to get to that folder (for example cd Sibest-central)
+13. Once you're done, type git clone <repo url> (now you copied the project to file essentially and can receive updates with simple commands)
+14. In your terminal type: npm install (installs necessary files to run code)
+15. Type in a terminal window node server.js and don't close it as long as you want the website to keep running
+16. Now for Logging in, you need your account ID. Easy, you can find it in the url of any page when you log in to basecamp (just open basecamp regularly on the browser and check the url) It will be something like: https://3.basecamp.com/YOUR_ACCOUNT_ID/projects. 
+17. Copy that Account ID and store it somewhere for later logins.
+18. Put your Account ID and the ACCESS_TOKEN you acquired earlier and you're in
