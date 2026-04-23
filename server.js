@@ -3,7 +3,6 @@ const https = require("https");
 const fs = require("fs");
 const path = require("path");
 const url = require("url");
-const { argv0 } = require("process");
 
 let CONFIG = {};
 try {
@@ -108,13 +107,13 @@ const server = http.createServer(async (req, res) => {
       const params = new URLSearchParams({
         type: "refresh",
         refresh_token,
-        client_id: CONFIG.clientID,
+        client_id: CONFIG.clientId,
         client_secret: CONFIG.clientSecret,
         redirect_uri: CONFIG.redirectUri,
       }).toString();
       const refreshResult = await basecampRequest({
         hostname: "launchpad.37signals.com",
-        path: "/authorization/token" + params,
+        path: "/authorization/token?" + params,
         method: "POST",
         headers: {
           "User-Agent": "BasecampCommandCenter (personal-dashboard)",
