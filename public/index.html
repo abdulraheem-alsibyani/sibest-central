@@ -340,6 +340,7 @@ const getProg  = id => { const a = getTodos(id); return a.length ? Math.round(ge
 const isOverdue = t => !t.completed && t.due_on && new Date(t.due_on) < new Date(new Date().toDateString());
 const daysSince = d => Math.floor((Date.now()-new Date(d))/86400000);
 const inactive  = p => daysSince(p.updated_at) >= 7;
+const projectUrl = id => `https://3.basecamp.com/${S.accountId}/projects/${id}`;
 
 function getAlerts() {
   const a = [];
@@ -447,6 +448,10 @@ function renderProjects() {
         ${hasOD?'<span class="badge badge-red">Overdue</span>':''}
         ${inact?'<span class="badge badge-amber">Inactive</span>':''}
         <div class="meta-chip" style="margin-left:auto;font-size:0.65rem">${daysSince(p.updated_at)}d ago</div>
+        <a href="${projectUrl(p.id)}" target = "_blank" rel= "noopener"
+onclick="event.stopPropagation()"
+style="font-size: 0.85rem;color:var(--muted);text-decoration:none;margin-left:8px"
+title= "Open in Basecamp"> ↗  </a>
       </div>
     </div>`;
   }).join('');
@@ -546,8 +551,17 @@ function renderFullAlerts() {
       const color=(a.type==='overdue'||a.type==='overloaded')?'var(--red)':'var(--amber)';
       return `<div class="task-item">
         <span style="font-size:1.1rem">${icon}</span>
-        <div class="task-title">${a.msg}</div>
-        ${a.project?`<div class="task-assignee">${a.project.name}</div>`:''}
+    <div class="task-title">${
+    (a.type === 'overdue' || a.type === 'nodate') && a.task && a.task.app_url ?
+    `<a href = "${a.task.app_url}" target="_blank" rel="noopener"
+    style="color:inherit;text-decoration:none">${a.msg} <span
+    style="color:var(--muted); font-size:0.85em">↗</span></a>`
+    : a.msg
+    }</div>
+    ${a.project?`<div class="task-assignee"><a href="${projectUrl(a.project.id)}"
+target="_blank" rel="noopener"
+    style="color:inherit; text-decoration:none"> ${a.project.name} <span
+    style="color: var(--muted);font-size:0.85em"></span>↗ </a></div>` : ''}
         <span class="badge" style="background:${color}22;color:${color}">${label}</span>
       </div>`;
     }).join('')}</div>`;
@@ -605,15 +619,19 @@ function renderProjectDetail(id) {
     const due = t.due_on || 'No due date';
 
     return `<div class="kanban-card">
-          <div class = "kanban-card-title">${t.title}</div>
+          <div class = "kanban-card-title">${t.app_url ? `<a href = "${t.app_url}"
+target= "_blank" rel="noopener" style = "color:inherit; text-decoration:none">${t.title}
+<span style = "color:var(--muted);font-weight:400;font-size:0.85em">↗</span></a>` : 
+t.title}</div>
 <div class = "kanban-card-meta">${assignee}</div>
 <div class = "kanban-card-meta">Assigned: ${created}</div>
-<div class = "kanban-card-meta">Due: ${due}></div>
+<div class = "kanban-card-meta">Due: ${due}</div>
 </div>`;
   }
   document.getElementById('project-detail').innerHTML = `
 <div class = "detail-back" onclick="closeProjectDetail()"> Back to projects</div>
-<h2 class = "detail-project-name">${p.name}</h2>
+<h2 class = "detail-project-name">${p.name} <a href="${projectUrl(p.id)}"
+  target="_blank" rel="noopener" style="font-size:0.7em;color:var(--muted);text-decoration:none;margin-left:8px;font-weight:400" title = "Open in Basecamp">↗ </a></h2>
 ${firstTask ? `
 <div class="first-task-summary" style = "padding:10px 14px;margin-bottom:14px;background:
   var(--surface2);border-radius:8px;font-size:0.8rem; line-height:1.6">
