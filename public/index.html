@@ -23,10 +23,14 @@
     <input type="text" id="account-id" placeholder="e.g. 1234567" />
     <label>Access Token</label>
     <input type="password" id="api-token" placeholder="Paste your OAuth access token" />
+    <label> Refresh Token <span style="color:var(--muted); font-weight:400"></span> </label>
+    <input type = "password" id = "refresh-token" placeholder="Paste your OAuth refresh token" />
+
     <div class="setup-hint">
       Your <strong>Account ID</strong> is in your Basecamp URL:<br>
       basecamp.com/<strong style="color:var(--accent)">1234567</strong>/projects<br><br>
-      Your <strong>Access Token</strong> is the one you just generated via OAuth.
+      Your <strong>Access Token</strong> and <strong>Refresh Token</strong> are returned together by the OAuth exchange. 
+      With refresh token set, the dashboard will auto-renew youtr access token before it expires.
     </div>
     <button class="btn-primary" id="connect-btn" onclick="connect()">Connect to Basecamp →</button>
     <div id="connect-error" style="color:var(--red);font-size:0.75rem;display:none;line-height:1.6"></div>
@@ -92,7 +96,7 @@ const PROXY = 'http://localhost:3000/api';
 const COLORS = ['#4f6ef7','#7c3aed','#06b6d4','#ec4899','#f59e0b','#22c55e','#ef4444','#8b5cf6','#14b8a6','#f97316'];
 const AVATAR_BG = [['#4f6ef7','#e0e7ff'],['#7c3aed','#ede9fe'],['#06b6d4','#cffafe'],['#ec4899','#fce7f3'],['#f59e0b','#fef3c7'],['#22c55e','#dcfce7']];
 
-let S = { token:'', accountId:'', projects:[], todos:{}, people:[], search:'', peopleFilter:'all', projectFilter:'all', detailId:null, detailTab:'open' };
+let S = { token:'', refreshToken:'', accountId:'', projects:[], todos:{}, people:[], search:'', peopleFilter:'all', projectFilter:'all', detailId:null, detailTab:'open' };
 
 function getExcluded() {
   return JSON.parse(localStorage.getItem('excluded_people_' + S.accountId) || '[]');
@@ -147,15 +151,22 @@ async function apiAll(path) {
 // ── CONNECT ──────────────────────────────────────────
 async function connect() {
   const token = document.getElementById('api-token').value.trim();
+  const refreshToken = document.getElementById('refresh-token').value.trim();
   const accountId = document.getElementById('account-id').value.trim();
   const errEl = document.getElementById('connect-error');
   errEl.style.display = 'none';
-  if (!token || !accountId) { showErr('Please enter both your Account ID and Access Token.'); return; }
+  if (!token || !accountId) { showErr('Please enter both your Account ID and Access Token.'); 
+    return; }
   const btn = document.getElementById('connect-btn');
   btn.disabled = true; btn.textContent = 'Connecting…';
-  S.token = token; S.accountId = accountId;
+  S.token = token; S.refreshToken = refreshToken; S.accountId = accountId;
   try {
     await api('/projects.json'); // test call
+    // Persist credentials for auto-connect 
+    localStorage.setItem('bc_token', token);
+    localStoragesetItem('bc_account', accountId);
+    if (refreshToken) localStorage.setItem('bc_refresh', refreshToken);
+    else localStorage.removeItem('bc_refresh');
     document.getElementById('setup-screen').style.display = 'none';
     document.getElementById('app').style.display = 'block';
     await loadAll();
@@ -167,10 +178,16 @@ async function connect() {
 function showErr(msg) { const e = document.getElementById('connect-error'); e.textContent = msg; e.style.display = 'block'; }
 function disconnect() {
   if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
-  S = { token:'', accountId:'', projects:[], todos:{}, people:[], search:'', projectFilter:'all', peopleFilter:'all', detailId:null, detailTab:'open' };
+  // Clear Persisted credentials
+  localStorage.removeItem('bc_token');
+  localStorage.removeItem('bc_refresh');
+  localStorage.removeItem('bc_account');
+
+  S = { token:'', refreshToken: '', accountId:'', projects:[], todos:{}, people:[], search:'', projectFilter:'all', peopleFilter:'all', detailId:null, detailTab:'open' };
   document.getElementById('setup-screen').style.display = 'flex';
   document.getElementById('app').style.display = 'none';
   document.getElementById('api-token').value = '';
+  document.getElementById('refresh-token').value = '';
   document.getElementById('account-id').value = '';
   document.getElementById('connect-btn').disabled = false;
   document.getElementById('connect-btn').textContent = 'Connect to Basecamp →';
