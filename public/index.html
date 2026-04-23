@@ -117,21 +117,64 @@ let lastRefreshTime = null;
 const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 // ── API ──────────────────────────────────────────────
-async function api(path) {
-  const res = await fetch(PROXY + path, {
-    headers: { 'X-Basecamp-Token': S.token, 'X-Basecamp-Account': S.accountId }
+let refreshInFlight = null;
+
+async function tryRefresh() {
+  if (!S.refreshToken) return false;
+
+if (refreshInFlight) return refreshInFlight;
+refreshInFlight = (async () => {
+  try {
+      const res = await fetch(PROXY + '/auth/refresh', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ refresh_token: S.refreshToken})
+      });
+      if (!res.ok) return false;
+      const data = await res.json();
+      if (!data.access_token) return false;
+      S.token = data.access_token;
+      localStorage.setItem('bc_token', data.access_token);
+
+      if (data.refresh_token) { // Persist possible new refresh token
+        S.refreshToken = data.refresh_token;
+        localStorage.setItem('bc_refresh', data.refresh_token);
+      }
+      return true;
+    } catch (e) {
+      console.warn('Token refresh failed:', e.message);
+      return false;
+    } finally {
+      refreshInFlight = null;
+    }
+
+  })();
+  return refreshInFlight;
+}
+async function bcFetch(path) {
+  let res = await fetch(PROXY + path, {
+  headers: {'X-Basecamp-Token': S.token, 'X-Basecamp-Account': S.accountId}
+
   });
+  if (res.status === 401 && await tryRefresh()) {
+    // Retry one time with fresh access token.
+    res = await fetch(PROXY + path, {
+      headers: {'X-Basecamp-Token': S.token, 'X-Basecamp-Account': S.accountId}
+    });
+  }
+  return res;
+}
+
+async function api(path) {
+  const res = await bcFetch(path);
   if (!res.ok) throw new Error(`API ${res.status}: ${path}`);
   return res.json();
 }
-
 async function apiAll(path) {
   let results = [];
   let url = path;
   while (url) {
-    const res = await fetch(PROXY + url, {
-      headers: { 'X-Basecamp-Token': S.token, 'X-Basecamp-Account': S.accountId }
-    });
+    const res = await bcFetch(url);
     if (!res.ok) throw new Error(`API ${res.status}: ${url}`);
     const data = await res.json();
     results = results.concat(data);
@@ -147,7 +190,6 @@ async function apiAll(path) {
   }
   return results;
 }
-
 // ── CONNECT ──────────────────────────────────────────
 async function connect() {
   const token = document.getElementById('api-token').value.trim();
@@ -191,6 +233,30 @@ function disconnect() {
   document.getElementById('account-id').value = '';
   document.getElementById('connect-btn').disabled = false;
   document.getElementById('connect-btn').textContent = 'Connect to Basecamp →';
+}
+
+async function autoConnect() {
+  const token = localStorage.getItem('bc_token');
+  const accountId = localStorage.getItem('bc_account');
+  const refreshToken = localStorage.getItem('bc_refresh') || '';
+  if (!token || !accountId) return; // No saved creds = login screen
+  
+  // optimistic screen swapping to prevent flash during test call
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  S.token = token;
+  S.refreshToken = refreshToken;
+  S.accountId = accountId;
+
+  try {
+    await api('/projects.json'); // access token validation
+    await loadAll();
+  } catch (e) {
+    console.warn('Auto-connect failed:', e.message);
+    document.getElementById('setup-screen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+    showErr('Saved session is invalid or expired. Please reconnect.');
+  }
 }
 
 // ── LOAD DATA ─────────────────────────────────────────
@@ -449,7 +515,6 @@ function renderPeople() {
           <div class="person-email">${hl(person.email_address||'',q)}</div>
         </div>
         ${overloaded?'<span class="badge badge-red">Overloaded</span>':''}
-        <button class="hide-person-btn" onclick="event.stopPropagation();toggleExclude(${person.id})" title="${excluded.includes(person.id) ? 'Show' : 'Hide'} member">${excluded.includes(person.id) ? '↩' : '✕'}</button>
       </div>
       <div class="workload-label"><span>Workload</span><span>${open} open tasks</span></div>
       <div class="progress-bar"><div class="workload-fill" style="width:${pct}%;background:${barColor}"></div></div>
@@ -526,6 +591,11 @@ function renderProjectDetail(id) {
   const nodate = getOpen(id).filter(t => !t.due_on);
   const total = todos.length;
 
+  // Earliest-created task in a project
+  const firstTask = todos
+  .filter(t => t.created_at)
+    .sort((a,b) => new Date(a.created_at) - new Date(b.created_at))[0] || null;
+
   const showAllCompleted = S.showAllCompleted || false;
   const displayedDone = S.showAllCompleted ? done : done.slice(0,10);
 
@@ -544,6 +614,22 @@ function renderProjectDetail(id) {
   document.getElementById('project-detail').innerHTML = `
 <div class = "detail-back" onclick="closeProjectDetail()"> Back to projects</div>
 <h2 class = "detail-project-name">${p.name}</h2>
+${firstTask ? `
+<div class="first-task-summary" style = "padding:10px 14px;margin-bottom:14px;background:
+  var(--surface2);border-radius:8px;font-size:0.8rem; line-height:1.6">
+  <div style="color:var(--muted); font-size:0.68rem;text-transform:uppercase;letter-spacing:0.5px;
+    margin-bottom:4px">First assigned task</div>
+<div
+    style="font-weight:600;color:var(--text);margin-bottom:4px">${firstTask.title}</div>
+<div style="color:var(--muted)">
+  <span>Assignee: ${(firstTask.assignees || []).map(a=> a.name).join(', ') || 'Unassigned'}</span>
+  <span style = "margin:0 10px">·</span>
+<span>Assigned: ${new Date(firstTask.created_at).toLocaleDateString()}</span>
+  <span style = "margin:0 10px">·</span>
+
+<span>Due: ${firstTask.due_on ? new Date(firstTask.due_on).toLocaleDateString() : 'No due date'}</span>
+</div>
+</div>` : ''}
 <div class = "detail-chips">
   <span class = "badge badge-green">${total} total </span>
   <span class = "badge badge-green">${open.length} open </span>
@@ -567,6 +653,7 @@ function renderProjectDetail(id) {
 </div>
 </div>`;
 }
+autoConnect();
 </script>
 </body>
 </html>
