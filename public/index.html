@@ -654,7 +654,6 @@
       // ── RENDER ALL ────────────────────────────────────────
       function render() {
         renderProjectStats();
-        renderAlertsBar();
         renderProjects();
         renderPeopleStats();
         renderPeopleFilters();
@@ -1040,9 +1039,8 @@
         if (!p) return;
         S.detailId = id;
 
-        // hide stats cards row, alerts bar, section headr, and projects grid
+        // hide stats cards row, section headr, and projects grid
         document.getElementById("project-stats").style.display = "none";
-        document.getElementById("alerts-bar").style.display = "none";
         document.querySelector("#tab-projects .section-header").style.display =
           "none";
         document.getElementById("projects-grid").style.display = "none";
@@ -1056,7 +1054,6 @@
       function closeProjectDetail() {
         document.getElementById("project-detail").style.display = "none";
         document.getElementById("project-stats").style.display = "";
-        document.getElementById("alerts-bar").style.display = "";
         document.querySelector("#tab-projects .section-header").style.display =
           "";
         document.getElementById("projects-grid").style.display = "";
@@ -1104,7 +1101,7 @@
                   </div>`;
         }
         document.getElementById("project-detail").innerHTML = `
-                  <div class = "detail-back" onclick="closeProjectDetail()"> Back to projects</div>
+                  <div class = "detail-back" onclick="closeProjectDetail()"> ← Back to projects</div>
                   <h2 class = "detail-project-name">${p.name} <a href="${projectUrl(p.id)}"
                     target="_blank" rel="noopener" style="font-size:0.7em;color:var(--muted);text-decoration:none;margin-left:8px;font-weight:400" title = "Open in Basecamp">↗ </a></h2>
                   ${
