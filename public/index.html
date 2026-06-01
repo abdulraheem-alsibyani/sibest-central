@@ -112,7 +112,7 @@
         </div>
         <div class="topbar-right">
           <div class="account-badge">
-            Account <span id="account-name">—</span>
+          <span id="account-name">—</span>
           </div>
           <span
             id="last-refresh"
@@ -140,7 +140,7 @@
       <div class="content">
         <div id="tab-projects">
           <div class="stats-row" id="project-stats"></div>
-          <div id="alerts-bar"></div>
+          
           <div class="section-header">
             <div class="section-title" id="section-title-projects">
               All Projects
@@ -682,34 +682,13 @@
         const inact = S.projects.filter((p) => inactive(p)).length;
         document.getElementById("project-stats").innerHTML = `
                   <div class="stat-card ${S.projectFilter === "all" ? "active" : ""}" onclick="toggleProjectFilter('all')"><div class="stat-label">Projects</div><div class="stat-value">${S.projects.length}</div><div class="stat-sub">${S.people.filter((p) => !getExcluded().includes(p.id)).length} team members</div></div>
-                      <div class="stat-card ${S.projectFilter === "open" ? "active" : ""}"  onclick= "toggleProjectFilter('open')"><div class="stat-label">Open Tasks</div><div class="stat-value">${totalOpen}</div><div class="stat-sub">across all projects</div></div>
-                      <div class="stat-card ${S.projectFilter === "completed" ? "active" : ""}"  onclick="toggleProjectFilter('completed')"><div class="stat-label">Completed</div><div class="stat-value">${totalDone}</div><div class="stat-sub">tasks done</div></div>
-                      <div class="stat-card ${S.projectFilter === "overdue" ? "active" : ""}"  onclick="toggleProjectFilter('overdue')" ><div class="stat-label">Overdue</div><div class="stat-value">${overdue}</div><div class="stat-sub">tasks past due</div></div>
-                      <div class="stat-card ${S.projectFilter === "inactive" ? "active" : ""}"  onclick="toggleProjectFilter('inactive')" ><div class="stat-label">Inactive</div><div class="stat-value">${inact}</div><div class="stat-sub">projects 7d+ quiet</div></div>`;
+                      <div class="stat-card ${S.projectFilter === "open" ? "active" : ""}"  onclick= "toggleProjectFilter('open')"><div class="stat-label">Open Tasks</div><div class="stat-value">${totalOpen}</div></div>
+                      <div class="stat-card ${S.projectFilter === "completed" ? "active" : ""}"  onclick="toggleProjectFilter('completed')"><div class="stat-label">Completed</div><div class="stat-value">${totalDone}</div></div>
+                      <div class="stat-card ${S.projectFilter === "overdue" ? "active" : ""}"  onclick="toggleProjectFilter('overdue')" ><div class="stat-label">Overdue</div><div class="stat-value">${overdue}</div></div>
+                      <div class="stat-card ${S.projectFilter === "inactive" ? "active" : ""}"  onclick="toggleProjectFilter('inactive')" ><div class="stat-label">Inactive</div><div class="stat-value">${inact}</div></div>`;
       }
 
-      // ── ALERTS BAR ────────────────────────────────────────
-      function renderAlertsBar() {
-        const alerts = getAlerts();
-        if (!alerts.length) {
-          document.getElementById("alerts-bar").innerHTML = "";
-          return;
-        }
-        const od = alerts.filter((a) => a.type === "overdue").length;
-        const ia = alerts.filter((a) => a.type === "inactive").length;
-        const nd = alerts.filter((a) => a.type === "nodate").length;
-        const ol = alerts.filter((a) => a.type === "overloaded").length;
-        document.getElementById("alerts-bar").innerHTML =
-          `<div class="alerts-bar">
-                      <span class="alerts-label">⚠ Alerts</span>
-                      ${od ? `<span class="alert-chip">🔴 ${od} overdue</span>` : ""}
-                      ${ia ? `<span class="alert-chip warn">⏸ ${ia} inactive projects</span>` : ""}
-                      ${nd ? `<span class="alert-chip warn">📅 ${nd} missing due dates</span>` : ""}
-                      ${ol ? `<span class="alert-chip">👤 ${ol} overloaded</span>` : ""}
-                      <span style="margin-left:auto;font-size:0.68rem;color:var(--muted);cursor:pointer" onclick="switchTab('alerts',document.querySelectorAll('.tab')[2])">View all →</span>
-                    </div>`;
-      }
-      // ── PROJECTS ──────────────────────────────────────────
+
       function renderProjects() {
         let list = S.projects;
 
