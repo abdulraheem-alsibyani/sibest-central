@@ -232,6 +232,10 @@ body {
   gap: 6px;
   cursor: default;
 }
+.account-badge:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
 .account-badge span {
   color: var(--text);
 }
@@ -259,7 +263,6 @@ body {
 /* TABS */
 .tabs {
   padding: var(--space-lg) var(--space-2xl) 0;
-
   display: flex;
   gap: 4px;
   border-bottom: 1px solid var(--border);
@@ -271,7 +274,8 @@ body {
   font-weight: 600;
   cursor: pointer;
   color: var(--muted);
-  border: 1px solid transparent;
+  border: 1px solid;
+  border-color: var(--border);
   border-bottom: none;
   transition: all 0.2s;
   letter-spacing: 0.03em;
@@ -281,12 +285,13 @@ body {
 }
 .tab.active {
   background: var(--surface);
-  color: var(--text);
-  border-color: var(--border);
+  color: var(--accent);
+  border-color: var(--accent);
   border-bottom-color: var(--surface);
 }
-.tab:hover:not(.active) {
-  color: var(--text);
+.tab:hover {
+  color: var(--secondary);
+  border-color: var(--secondary);
 }
 
 /* CONTENT */
@@ -904,6 +909,58 @@ mark {
   gap: 8px;
   flex-wrap: wrap;
   margin-bottom: 24px;
+}
+
+.task-table {
+  margin-right: auto;
+  margin-left: auto;
+  width: 75%;
+  border-collapse: seperate;
+  border-spacing: 0;
+  overflow: hidden;
+  border-radius: var(--space-md);
+  box-shadow: var(--shadow-hover);
+}
+.task-table thead th {
+  text-align: left;
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 200;
+  color: var(--text-muted);
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+}
+.task-table tbody td {
+  font-size: var(--text-sm);
+  color: var(--text);
+  padding: var(--space-md) var(--space-lg);
+  background: var(--surface);
+}
+.task-table tbody tr:hover td {
+  background: var(--surface2);
+  color: var(--secondary);
+}
+.task-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.task-table td:nth-child(1) {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.task-table:hover td:nth-child(1) {
+  color: var(--accent-dim);
+}
+.task-table td:nth-child(2) {
+  color: var(--text-dim);
+}
+
+.task-table td:nth-child(3),
+.task-table td:nth-child(4) {
+  color: var(--muted);
+  white-space: nowrap;
 }
 .kanban-row {
   display: grid;

@@ -782,10 +782,10 @@
           (p) => openForPerson(p.id).length >= 10,
         ).length;
         document.getElementById("people-stats").innerHTML = `
-                            <div class="stat-card "><div class="stat-label">Members</div><div class="stat-value">${visiblePeople.length}</div></div>
-                            <div class="stat-card "><div class="stat-label">Assigned Open</div><div class="stat-value">${totalOpen}</div></div>
-                            <div class="stat-card "><div class="stat-label">Overloaded</div><div class="stat-value">${overloaded}</div><div class="stat-sub">5+ open tasks</div></div>
-                            <div class="stat-card "><div class="stat-label">Avg Tasks</div><div class="stat-value">${visiblePeople.length ? (totalOpen / visiblePeople.length).toFixed(1) : 0}</div><div class="stat-sub">per person</div></div>`;
+                            <div class="stat-card " style ="cursor:default"><div class="stat-label">Members</div><div class="stat-value">${visiblePeople.length}</div></div>
+                            <div class="stat-card " style ="cursor:default"><div class="stat-label">Assigned Open</div><div class="stat-value">${totalOpen}</div></div>
+                            <div class="stat-card " style ="cursor:default"><div class="stat-label">Overloaded</div><div class="stat-value">${overloaded}</div><div class="stat-sub">5+ open tasks</div></div>
+                            <div class="stat-card " style ="cursor:default"><div class="stat-label">Avg Tasks</div><div class="stat-value">${visiblePeople.length ? (totalOpen / visiblePeople.length).toFixed(1) : 0}</div><div class="stat-sub">per person</div></div>`;
       }
 
       // ── PEOPLE FILTERS ────────────────────────────────────
@@ -1129,6 +1129,7 @@
                                       : t.title
                                   }</td>
                         <td>${assignee}</td>
+                        <td>${status}</td>
                         <td>${created}</td>
                         <td>${due}</td>
                         </tr>`;
@@ -1186,8 +1187,10 @@
           <tr>
             <th>Task</th>
             <th>Assignee</th>
+            <th>Status</th>
             <th>Assigned Date</th>
             <th>Due Date</th>
+
 
           </tr>
         </thead>
