@@ -747,7 +747,7 @@
                                 <span class="badge badge-accent">${open} Open</span>
                                 <span class="badge badge-green">${done} Done</span>
                                 ${hasOD ? `<span class="badge badge-red"> ${overdue} Overdue</span>` : ""}
-                                ${inact ? `<span class="badge badge-amber">Inactive</span>` : ""}
+                                ${inact ? `<span class="badge badge-amber">Inactive project</span>` : ""}
                                 <div class="meta-chip" style = "position: absolute;
         top: var(--space-lg);
         right: var(--space-lg);
@@ -1110,6 +1110,29 @@
                         </div>`;
         }
 
+        function taskRow(t) {
+          const assignee =
+            (t.assignees || []).map((a) => a.name).join(",") || "Unassigned";
+          const created = t.created_at
+            ? new Date(t.created_at).toLocaleDateString()
+            : "–";
+          const due = t.due_on
+            ? new Date(t.due_on).toLocaleDateString()
+            : "No due date";
+
+          return `<tr>
+                                  <td>${
+                                    t.app_url
+                                      ? `<a href = "${t.app_url}"
+                        target= "_blank" rel="noopener" style = "color:inherit; text-decoration:none">${t.title}
+                        <span style = "color:var(--muted);font-weight:400;font-size:0.85em">↗</span></a>`
+                                      : t.title
+                                  }</td>
+                        <td>${assignee}</td>
+                        <td>${created}</td>
+                        <td>${due}</td>
+                        </tr>`;
+        }
         function compareByDue(a, b) {
           a = a.due_on;
           b = b.due_on;
@@ -1163,11 +1186,13 @@
           <tr>
             <th>Task</th>
             <th>Assignee</th>
+            <th>Assigned Date</th>
             <th>Due Date</th>
+
           </tr>
         </thead>
         <tbody>
-          ${sortedTasks.map(taskRow).join("")}
+        ${sortedTasks.length ? sortedTasks.map(taskRow).join("") : `<tr><td colspan="4"> No Uncompleted Open Tasks on This Project</td></tr>`}
         </tbody>
       </table>     `;
       }
