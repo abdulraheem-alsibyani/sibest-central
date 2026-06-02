@@ -539,10 +539,14 @@
       // ── COMPUTED ──────────────────────────────────────────
       const arrowIcon = (size = 18) =>
         `<svg width="${size}" height="${size}" viewBox="0 0 24 24"
-        fill="none" stroke="currentColor" stroke-width="2"
+        fill="none" stroke="currentColor" stroke-width="3"
         stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17
         7H7M17 7V17"/></svg>`;
-
+      const panelCollapseIcon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="3" width="18" height="18" rx="2"/>
+    <path d="M15 3v18"/>
+    <path d="m8 9 3 3-3 3"/>
+  </svg>`;
       // One Basecamp external link, used everywhere.
       const bcLink = (url, label = "", size = 14) =>
         `<a class="plain-link" href="${url}" target="_blank" rel="noopener" title="Open in Basecamp">${label}${arrowIcon(size)}</a>`;
@@ -790,9 +794,9 @@
         ).length;
         document.getElementById("people-stats").innerHTML = `
                                         <div class="stat-card " style ="cursor:default"><div class="stat-label">Members</div><div class="stat-value">${visiblePeople.length}</div></div>
-                                        <div class="stat-card " style ="cursor:default"><div class="stat-label">Assigned Open</div><div class="stat-value">${totalOpen}</div></div>
-                                        <div class="stat-card " style ="cursor:default"><div class="stat-label">Overloaded</div><div class="stat-value">${overloaded}</div><div class="stat-sub">5+ open tasks</div></div>
-                                        <div class="stat-card " style ="cursor:default"><div class="stat-label">Avg Tasks</div><div class="stat-value">${visiblePeople.length ? (totalOpen / visiblePeople.length).toFixed(1) : 0}</div><div class="stat-sub">per person</div></div>`;
+                                        <div class="stat-card " style ="cursor:default"><div class="stat-label">Open</div><div class="stat-value">${totalOpen}</div></div>
+                                        <div class="stat-card " style ="cursor:default"><div class="stat-label">Overloaded</div><div class="stat-value">${overloaded}</div></div>
+                                        <div class="stat-card " style ="cursor:default"><div class="stat-label">Avg load</div><div class="stat-value">${visiblePeople.length ? (totalOpen / visiblePeople.length).toFixed(1) : 0} </div></div>`;
       }
 
       // ── PEOPLE FILTERS ────────────────────────────────────
@@ -964,7 +968,7 @@
 
         document.getElementById("member-detail").innerHTML = `
           <div class="detail-card">
-            <div class="detail-back" onclick="closeMemberDetail()"> ← Back to team</div>
+            <div class="detail-back" onclick="closeMemberDetail()"> ${panelCollapseIcon}</div>
             <h2 class="detail-project-name">${person.name}</h2>
             <div class="detail-card-grid">
               <div class="detail-stat">
@@ -1177,7 +1181,7 @@
 
         document.getElementById("project-detail").innerHTML = `
           <div class="detail-card">
-            <div class="detail-back" onclick="closeProjectDetail()"> ← Back to projects</div>
+            <div class="detail-back" onclick="closeProjectDetail()">${panelCollapseIcon}</div>
             <h2 class="detail-project-name">${p.name} ${bcLink(projectUrl(p.id))}</h2>
             ${
               firstTask
