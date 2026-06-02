@@ -275,7 +275,7 @@ body {
   padding: var(--space-lg) var(--space-2xl) 0;
   display: flex;
   gap: 4px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--accent);
 }
 .tab {
   padding: 10px 20px;
@@ -290,8 +290,20 @@ body {
   transition: all 0.2s;
   letter-spacing: 0.03em;
   position: relative;
-  bottom: -1px;
+  bottom: 0;
   background: transparent;
+}
+.tab.active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  bottom: -1px;
+  background: var(--surface);
+}
+.tabs:has(.tab:hover) {
+  border-color: var(--secondary);
 }
 .tab.active {
   background: var(--surface);
@@ -451,16 +463,27 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.12em;
 }
-.section-count {
-  font-size: var(--text-xs);
-  color: var(--muted);
-  background: var(--surface2);
-  padding: 2px var(--space-sm);
-  border-radius: var(--radius-pill);
-  border: 1px solid var(--border);
-}
 
 /* PROJECTS GRID */
+
+.projects-layout {
+  display: block;
+}
+#project-detail {
+  display: none;
+}
+.projects-layout.split {
+  display: grid;
+  grid-template-columns: 2fr 3fr;
+  gap: var(--space-lg);
+  align-items: start;
+}
+.projects-layout.split .projects-grid {
+  grid-template-columns: 1fr;
+}
+.projects-layout.split #project-detail {
+  display: block;
+}
 .projects-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, 1fr);
@@ -478,6 +501,7 @@ body {
   box-shadow: var(--shadow-rest);
 }
 .project-card:hover {
+  color: var(--accent);
   border-color: var(--accent);
   transform: translateY(-2px);
   box-shadow: var(--shadow-hover);
@@ -521,6 +545,9 @@ body {
 .project-card:hover .progress-fill {
   background: var(--secondary);
 }
+.person-card:hover .workload-fill {
+  background: var(--secondary);
+}
 .project-meta {
   display: flex;
   gap: 12px;
@@ -546,21 +573,30 @@ body {
 }
 .badge-accent {
   background: color-mix(in srgb, var(--accent) 15%, transparent);
+  border-radius: var(--radius-pill);
+  padding: 0 var(--space-sm);
+
   color: var(--accent);
 }
 .badge-red {
+  padding: 2px;
   background: color-mix(in srgb, var(--red) 15%, transparent);
+  border-radius: var(--radius-pill);
+  padding: 0 var(--space-sm);
 
   color: var(--red);
 }
 .badge-amber {
   background: color-mix(in srgb, var(--amber) 15%, transparent);
+  border-radius: var(--radius-pill);
+  padding: 0 var(--space-sm);
 
   color: var(--amber);
 }
 .badge-green {
+  padding: 0 var(--space-sm);
   background: color-mix(in srgb, var(--green) 15%, transparent);
-
+  border-radius: var(--radius-pill);
   color: var(--green);
 }
 .open-arrow {
@@ -570,7 +606,16 @@ body {
   color: var(--accent);
 }
 .open-arrow:hover {
-  color: var(--accent-dim);
+  color: var(--secondary);
+}
+/* Basecamp external link (bcLink) — inherits surrounding color, no underline */
+.plain-link {
+  color: inherit;
+  text-decoration: none;
+}
+.detail-project-name .plain-link {
+  color: var(--muted);
+  margin-left: 8px;
 }
 /* TASK LIST */
 .task-list {
@@ -655,15 +700,21 @@ body {
 }
 .person-card {
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: none;
   border-radius: var(--radius-lg);
   padding: 20px;
+  cursor: pointer;
   transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
   box-shadow: var(--shadow-rest);
 }
 .person-card:hover {
-  border-color: var(--border2);
+  color: var(--accent);
+  border-color: var(--accent);
+  transform: translateY(-2px);
   box-shadow: var(--shadow-hover);
+  background: var(--secondary-bg);
 }
 .person-card.overloaded {
   border-color: rgba(239, 68, 68, 0.3);
@@ -908,6 +959,7 @@ mark {
 }
 .detail-back:hover {
   text-decoration: underline;
+  color: var(--secondary);
 }
 .detail-project-name {
   font-size: var(--text-lg);
@@ -924,7 +976,7 @@ mark {
 .task-table {
   margin-right: auto;
   margin-left: auto;
-  width: 75%;
+  width: 100%;
   border-collapse: seperate;
   border-spacing: 0;
   overflow: hidden;
@@ -941,6 +993,10 @@ mark {
   padding: var(--space-md) var(--space-lg);
   border-bottom: 1px solid var(--border);
   background: var(--surface2);
+}
+.task-table td a {
+  color: inherit;
+  text-decoration: none;
 }
 .task-table tbody td {
   font-size: var(--text-sm);
@@ -960,8 +1016,8 @@ mark {
   color: var(--text);
 }
 
-.task-table:hover td:nth-child(1) {
-  color: var(--accent-dim);
+.task-table tbody tr:hover td:nth-child(1) {
+  color: var(--accent);
 }
 .task-table td:nth-child(2) {
   color: var(--text-dim);

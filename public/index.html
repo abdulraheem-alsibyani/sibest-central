@@ -147,14 +147,15 @@
             <div class="section-title" id="section-title-projects">
               All Projects
             </div>
-            <div class="section-count" id="project-count"></div>
           </div>
-          <div id="project-detail" style="display: none"></div>
-          <div class="projects-grid" id="projects-grid">
-            <div class="loading">
-              <div class="spinner"></div>
-              <div class="loading-text">Loading…</div>
+          <div class="projects-layout" id="projects-layout">
+            <div class="projects-grid" id="projects-grid">
+              <div class="loading">
+                <div class="spinner"></div>
+                <div class="loading-text">Loading…</div>
+              </div>
             </div>
+            <div id="project-detail"></div>
           </div>
         </div>
 
@@ -163,7 +164,6 @@
           <div class="filters-row" id="people-filters"></div>
           <div class="section-header">
             <div class="section-title">Team Members</div>
-            <div class="section-count" id="people-count"></div>
           </div>
           <div id="member-detail" style="display: none"></div>
           <div class="people-grid" id="people-grid"></div>
@@ -536,6 +536,15 @@
       setInterval(updateLastRefreshDisplay, 30000);
 
       // ── COMPUTED ──────────────────────────────────────────
+      const arrowIcon = (size = 18) =>
+        `<svg width="${size}" height="${size}" viewBox="0 0 24 24"
+  fill="none" stroke="currentColor" stroke-width="2"
+  stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17
+  7H7M17 7V17"/></svg>`;
+
+      // One Basecamp external link, used everywhere.
+      const bcLink = (url, label = "", size = 14) =>
+        `<a class="plain-link" href="${url}" target="_blank" rel="noopener" title="Open in Basecamp">${label}${arrowIcon(size)}</a>`;
 
       const getTodos = (id) => S.todos[id] || [];
       const getOpen = (id) => getTodos(id).filter((t) => !t.completed);
@@ -685,11 +694,11 @@
         );
         const inact = S.projects.filter((p) => inactive(p)).length;
         document.getElementById("project-stats").innerHTML = `
-                        <div class="stat-card ${S.projectFilter === "all" ? "active" : ""}" onclick="toggleProjectFilter('all')"><div class="stat-label">Projects</div><div class="stat-value">${S.projects.length}</div><div class="stat-sub">${S.people.filter((p) => !getExcluded().includes(p.id)).length} team members</div></div>
-                            <div class="stat-card ${S.projectFilter === "open" ? "active" : ""}"  onclick= "toggleProjectFilter('open')"><div class="stat-label">Open Tasks</div><div class="stat-value">${totalOpen}</div></div>
-                            <div class="stat-card ${S.projectFilter === "completed" ? "active" : ""}"  onclick="toggleProjectFilter('completed')"><div class="stat-label">Completed</div><div class="stat-value">${totalDone}</div></div>
-                            <div class="stat-card ${S.projectFilter === "overdue" ? "active" : ""}"  onclick="toggleProjectFilter('overdue')" ><div class="stat-label">Overdue</div><div class="stat-value">${overdue}</div></div>
-                            <div class="stat-card ${S.projectFilter === "inactive" ? "active" : ""}"  onclick="toggleProjectFilter('inactive')" ><div class="stat-label">Inactive</div><div class="stat-value">${inact}</div></div>`;
+                              <div class="stat-card ${S.projectFilter === "all" ? "active" : ""}" onclick="toggleProjectFilter('all')"><div class="stat-label">Projects</div><div class="stat-value">${S.projects.length}</div><div class="stat-sub">${S.people.filter((p) => !getExcluded().includes(p.id)).length} team members</div></div>
+                                  <div class="stat-card ${S.projectFilter === "open" ? "active" : ""}"  onclick= "toggleProjectFilter('open')"><div class="stat-label">Open Tasks</div><div class="stat-value">${totalOpen}</div></div>
+                                  <div class="stat-card ${S.projectFilter === "completed" ? "active" : ""}"  onclick="toggleProjectFilter('completed')"><div class="stat-label">Completed</div><div class="stat-value">${totalDone}</div></div>
+                                  <div class="stat-card ${S.projectFilter === "overdue" ? "active" : ""}"  onclick="toggleProjectFilter('overdue')" ><div class="stat-label">Overdue</div><div class="stat-value">${overdue}</div></div>
+                                  <div class="stat-card ${S.projectFilter === "inactive" ? "active" : ""}"  onclick="toggleProjectFilter('inactive')" ><div class="stat-label">Inactive</div><div class="stat-value">${inact}</div></div>`;
       }
 
       function renderProjects() {
@@ -720,8 +729,6 @@
         };
         document.getElementById("section-title-projects").textContent =
           titles[S.projectFilter] || "All Projects";
-        document.getElementById("project-count").textContent =
-          list.length + " projects";
         if (!list.length) {
           document.getElementById("projects-grid").innerHTML =
             '<div class="empty">No projects match.</div>';
@@ -737,27 +744,27 @@
               inact = inactive(p);
 
             return `<div class="project-card ${hasOD ? "has-alert" : ""}" onclick="openDetail(${p.id})">
-                              <div class="project-card-top">
-                                <div class="project-name">${hl(p.name, q)}</div>
-                              </div>
-                              <div class="progress-label"><span>${prog}% complete</span><span>${done}/${open + done}</span></div>
-                              <div class="progress-bar"><div class="progress-fill" style="width:${prog}%;"></div></div>
-                              <div class="project-meta">
-                                <span class="badge badge-accent">${open} Open</span>
-                                <span class="badge badge-green">${done} Done</span>
-                                ${hasOD ? `<span class="badge badge-red"> ${overdue} Overdue</span>` : ""}
-                                ${inact ? `<span class="badge badge-amber">Inactive project</span>` : ""}
-                                <div class="meta-chip" style = "position: absolute;
-        top: var(--space-lg);
-        right: var(--space-lg);
-      ">Last updated ${daysSince(p.updated_at)} days ago</div>
-                                <a href="${projectUrl(p.id)}" target = "_blank" rel= "noopener"
-                        onclick="event.stopPropagation()"
-                        class = "open-arrow"
+                                    <div class="project-card-top">
+                                      <div class="project-name">${hl(p.name, q)}</div>
+                                    </div>
+                                    <div class="progress-label"><span>${prog}% complete</span><span>${done}/${open + done}</span></div>
+                                    <div class="progress-bar"><div class="progress-fill" style="width:${prog}%;"></div></div>
+                                    <div class="project-meta">
+                                      <span class="badge badge-accent">${open} Open</span>
+                                      <span class="badge badge-green">${done} Done</span>
+                                      ${hasOD ? `<span class="badge badge-red"> ${overdue} Overdue</span>` : ""}
+                                      ${inact ? `<span class="badge badge-amber">Inactive project</span>` : ""}
+                                      <div class="meta-chip" style = "position: absolute;
+              bottom: var(--space-lg);
+              right: var(--space-lg);
+            ">Last updated ${daysSince(p.updated_at)} days ago</div>
+                                      <a href="${projectUrl(p.id)}" target = "_blank" rel= "noopener"
+                              onclick="event.stopPropagation()"
+                              class = "open-arrow"
 
-                        title= "Open in Basecamp"> <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg> </a>
-                              </div>
-                            </div>`;
+title= "Open in Basecamp"> ${arrowIcon()}</a>
+                                    </div>
+                                  </div>`;
           })
           .join("");
       }
@@ -781,22 +788,22 @@
           (p) => openForPerson(p.id).length >= 10,
         ).length;
         document.getElementById("people-stats").innerHTML = `
-                            <div class="stat-card " style ="cursor:default"><div class="stat-label">Members</div><div class="stat-value">${visiblePeople.length}</div></div>
-                            <div class="stat-card " style ="cursor:default"><div class="stat-label">Assigned Open</div><div class="stat-value">${totalOpen}</div></div>
-                            <div class="stat-card " style ="cursor:default"><div class="stat-label">Overloaded</div><div class="stat-value">${overloaded}</div><div class="stat-sub">5+ open tasks</div></div>
-                            <div class="stat-card " style ="cursor:default"><div class="stat-label">Avg Tasks</div><div class="stat-value">${visiblePeople.length ? (totalOpen / visiblePeople.length).toFixed(1) : 0}</div><div class="stat-sub">per person</div></div>`;
+                                  <div class="stat-card " style ="cursor:default"><div class="stat-label">Members</div><div class="stat-value">${visiblePeople.length}</div></div>
+                                  <div class="stat-card " style ="cursor:default"><div class="stat-label">Assigned Open</div><div class="stat-value">${totalOpen}</div></div>
+                                  <div class="stat-card " style ="cursor:default"><div class="stat-label">Overloaded</div><div class="stat-value">${overloaded}</div><div class="stat-sub">5+ open tasks</div></div>
+                                  <div class="stat-card " style ="cursor:default"><div class="stat-label">Avg Tasks</div><div class="stat-value">${visiblePeople.length ? (totalOpen / visiblePeople.length).toFixed(1) : 0}</div><div class="stat-sub">per person</div></div>`;
       }
 
       // ── PEOPLE FILTERS ────────────────────────────────────
       function renderPeopleFilters() {
         document.getElementById("people-filters").innerHTML = `
-                            <span class="filter-label">Filter:</span>
-                            <div class="filter-chip ${S.peopleFilter === "all" ? "active" : ""}" onclick="setPersonF('all',this)">All</div>
-                                <div class="filter-chip ${S.peopleFilter === "low" ? "active" : ""}" onclick="setPersonF('low',this)">Low (1–3)</div>
+                                  <span class="filter-label">Filter:</span>
+                                  <div class="filter-chip ${S.peopleFilter === "all" ? "active" : ""}" onclick="setPersonF('all',this)">All</div>
+                                      <div class="filter-chip ${S.peopleFilter === "low" ? "active" : ""}" onclick="setPersonF('low',this)">Low (1–3)</div>
 
-                            <div class="filter-chip ${S.peopleFilter === "medium" ? "active" : ""}" onclick="setPersonF ('medium', this)"> Medium (4-9)</div>
+                                  <div class="filter-chip ${S.peopleFilter === "medium" ? "active" : ""}" onclick="setPersonF ('medium', this)"> Medium (4-9)</div>
 
-                            <div class="filter-chip ${S.peopleFilter === "overloaded" ? "active" : ""}" onclick="setPersonF('overloaded',this)">Overloaded (10+)</div>`;
+                                  <div class="filter-chip ${S.peopleFilter === "overloaded" ? "active" : ""}" onclick="setPersonF('overloaded',this)">Overloaded (10+)</div>`;
       }
       function setPersonF(v) {
         S.peopleFilter = v;
@@ -830,8 +837,7 @@
               openForPerson(p.id).length >= 4 &&
               openForPerson(p.id).length <= 9,
           );
-        document.getElementById("people-count").textContent =
-          list.length + " members";
+
         const maxT = Math.max(
           ...list.map((p) => openForPerson(p.id).length),
           1,
@@ -858,23 +864,23 @@
                   ? "var(--amber)"
                   : "var(--green)";
               return `<div class="person-card ${overloaded ? "overloaded" : ""}"
-                        onclick="openMemberDetail(${person.id})" style = "cursor:pointer">
-                              <div class="person-header">
-                                <div class="avatar" style="background:${bg};color:${fg}">${initials}</div>
-                                <div style="flex:1">
-                                  <div class="person-name">${hl(person.name, q)}</div>
-                                  <div class="person-email">${hl(person.email_address || "", q)}</div>
-                                </div>
-                                ${overloaded ? '<span class="badge badge-red">Overloaded</span>' : ""}
-                              </div>
-                              <div class="workload-label"><span>Workload</span><span>${open} open tasks</span></div>
-                              <div class="progress-bar"><div class="workload-fill" style="width:${pct}%;"></div></div>
-                              <div class="person-stats">
-                                <div class="person-stat"><div class="person-stat-val" style="color:var(--green)">${open}</div><div class="person-stat-lbl">Open</div></div>
-                                <div class="person-stat"><div class="person-stat-val" style="color:var(--muted)">${done}</div><div class="person-stat-lbl">Done</div></div>
-                                <div class="person-stat"><div class="person-stat-val" style="color:var(--red)">${overdueForPerson(person.id)}</div><div class="person-stat-lbl">Overdue</div></div>
-                              </div>
-                            </div>`;
+                              onclick="openMemberDetail(${person.id})" style = "cursor:pointer">
+                                    <div class="person-header">
+                                      <div class="avatar" style="background:${bg};color:${fg}">${initials}</div>
+                                      <div style="flex:1">
+                                        <div class="person-name">${hl(person.name, q)}</div>
+                                        <div class="person-email">${hl(person.email_address || "", q)}</div>
+                                      </div>
+                                      ${overloaded ? '<span class="badge badge-red">Overloaded</span>' : ""}
+                                    </div>
+                                    <div class="workload-label"><span>Workload</span><span>${open} open tasks</span></div>
+                                    <div class="progress-bar"><div class="workload-fill" style="width:${pct}%;"></div></div>
+                                    <div class="person-stats">
+                                      <div class="person-stat"><div class="person-stat-val" style="color:var(--green)">${open}</div><div class="person-stat-lbl">Open</div></div>
+                                      <div class="person-stat"><div class="person-stat-val" style="color:var(--muted)">${done}</div><div class="person-stat-lbl">Done</div></div>
+                                      <div class="person-stat"><div class="person-stat-val" style="color:var(--red)">${overdueForPerson(person.id)}</div><div class="person-stat-lbl">Overdue</div></div>
+                                    </div>
+                                  </div>`;
             })
             .join("") || '<div class="empty">No members found.</div>';
       }
@@ -908,49 +914,49 @@
             : "No due date on this task";
 
           return `<div class="kanban-card">
-                  <div class="kanban-card-title">${
-                    t.app_url
-                      ? `<a href = "${t.app_url}" target = "_blank" rel = "noopener"
-                  style = "color:inherit; text-decoration:none"> ${t.title} <span
-                  style="color:var(--muted); font-weight:400;font-size:0.85em">↗</span></a>`
-                      : t.title
-                  }</div>
-                  <div class = "kanban-card-meta">${
-                    projectId
-                      ? `<a href = "${projectUrl(projectId)}" target="_blank" rel = "noopener"
-            style = " color:inherit;text-decoration:none">${projectName} ↗</a>`
-                      : projectName
-                  }</div>
-            <div class= "kanban-card-meta">Assigned: ${created} </div>
-            <div class="kanban-card-meta">Due: ${due}</div>
-            </div>`;
+                        <div class="kanban-card-title">${
+                          t.app_url
+                            ? `<a href = "${t.app_url}" target = "_blank" rel = "noopener"
+                        style = "color:inherit; text-decoration:none"> ${t.title} <span
+                        style="color:var(--muted); font-weight:400;font-size:0.85em">↗</span></a>`
+                            : t.title
+                        }</div>
+                        <div class = "kanban-card-meta">${
+                          projectId
+                            ? `<a href = "${projectUrl(projectId)}" target="_blank" rel = "noopener"
+                  style = " color:inherit;text-decoration:none">${projectName} ↗</a>`
+                            : projectName
+                        }</div>
+                  <div class= "kanban-card-meta">Assigned: ${created} </div>
+                  <div class="kanban-card-meta">Due: ${due}</div>
+                  </div>`;
         }
 
         document.getElementById("member-detail").innerHTML = `
-                        <div class = "detail-back" onclick="closeMemberDetail()"> ← Back to team</div>
-                        <h2 class = "detail-project-name">${person.name}</h2>
-                        <div style="color:var(--muted);font-size:0.8rem;margin-bottom:14px">${person.email_address || ""}</div>
-                        <div class="detail-chips">
-                          <span class="badge badge-green">${total} total</span>
-                          <span class="badge badge-green">${openTasks.length} open</span>
-                          <span class="badge badge-red">${overdueTasks.length} overdue</span>
-                          <span class="badge" style="background:var(--surface2);color:var(--muted)">${doneTasks.length} done</span>
-                          <span class="badge" style="background:var(--surface2);color:var(--muted)">${projectCount} projects</span></div>
-                        <div class = "kanban-row">
-                          <div class = "kanban-col">
-                          <div class = "kanban-header green"> Open (${openTasks.length})</div>${openTasks.map(taskCard).join("") || '<div class = "empty">None</div>'}
-                        </div>
-                          <div class = "kanban-col">
-                          <div class = "kanban-header red"> Overdue (${overdueTasks.length})</div>${overdueTasks.map(taskCard).join("") || '<div class = "empty">None</div>'}
-                        </div>
-                          <div class = "kanban-col">
-                          <div class = "kanban-header gray"> Completed (${doneTasks.length})</div>${doneTasks.map(taskCard).join("") || '<div class = "empty">None</div>'}
-                        </div>
-                          <div class = "kanban-col">
-                          <div class = "kanban-header amber"> No Due Date (${nodateTasks.length})</div>${nodateTasks.map(taskCard).join("") || '<div class = "empty">None</div>'}
-                        </div>
-                        </div>
-                        `;
+                              <div class = "detail-back" onclick="closeMemberDetail()"> ← Back to team</div>
+                              <h2 class = "detail-project-name">${person.name}</h2>
+                              <div style="color:var(--muted);font-size:0.8rem;margin-bottom:14px">${person.email_address || ""}</div>
+                              <div class="detail-chips">
+                                <span class="badge badge-green">${total} total</span>
+                                <span class="badge badge-green">${openTasks.length} open</span>
+                                <span class="badge badge-red">${overdueTasks.length} overdue</span>
+                                <span class="badge" style="background:var(--surface2);color:var(--muted)">${doneTasks.length} done</span>
+                                <span class="badge" style="background:var(--surface2);color:var(--muted)">${projectCount} projects</span></div>
+                              <div class = "kanban-row">
+                                <div class = "kanban-col">
+                                <div class = "kanban-header green"> Open (${openTasks.length})</div>${openTasks.map(taskCard).join("") || '<div class = "empty">None</div>'}
+                              </div>
+                                <div class = "kanban-col">
+                                <div class = "kanban-header red"> Overdue (${overdueTasks.length})</div>${overdueTasks.map(taskCard).join("") || '<div class = "empty">None</div>'}
+                              </div>
+                                <div class = "kanban-col">
+                                <div class = "kanban-header gray"> Completed (${doneTasks.length})</div>${doneTasks.map(taskCard).join("") || '<div class = "empty">None</div>'}
+                              </div>
+                                <div class = "kanban-col">
+                                <div class = "kanban-header amber"> No Due Date (${nodateTasks.length})</div>${nodateTasks.map(taskCard).join("") || '<div class = "empty">None</div>'}
+                              </div>
+                              </div>
+                              `;
       }
 
       // ── FULL ALERTS ───────────────────────────────────────
@@ -964,54 +970,55 @@
         const counts = { overdue: 0, nodate: 0, inactive: 0, overloaded: 0 };
         alerts.forEach((a) => counts[a.type]++);
         document.getElementById("full-alerts").innerHTML = `
-                            <div class="stats-row" style="margin-bottom:20px">
-                              <div class="stat-card "><div class="stat-label">Overdue Tasks</div><div class="stat-value">${counts.overdue}</div></div>
-                              <div class="stat-card "><div class="stat-label">No Due Date</div><div class="stat-value">${counts.nodate}</div></div>
-                              <div class="stat-card "><div class="stat-label">Inactive Projects</div><div class="stat-value">${counts.inactive}</div></div>
-                              <div class="stat-card "><div class="stat-label">Overloaded People</div><div class="stat-value">${counts.overloaded}</div></div>
-                            </div>
-                            <div class="task-list">${alerts
-                              .map((a) => {
-                                const icon = {
-                                  overdue: "🔴",
-                                  nodate: "📅",
-                                  inactive: "⏸",
-                                  overloaded: "👤",
-                                }[a.type];
-                                const label = {
-                                  overdue: "Overdue",
-                                  nodate: "No Due Date",
-                                  inactive: "Inactive",
-                                  overloaded: "Overloaded",
-                                }[a.type];
-                                const color =
-                                  a.type === "overdue" ||
-                                  a.type === "overloaded"
-                                    ? "var(--red)"
-                                    : "var(--amber)";
-                                return `<div class="task-item">
-                                <span style="font-size:1.1rem">${icon}</span>
-                            <div class="task-title">${
-                              (a.type === "overdue" || a.type === "nodate") &&
-                              a.task &&
-                              a.task.app_url
-                                ? `<a href = "${a.task.app_url}" target="_blank" rel="noopener"
-                            style="color:inherit;text-decoration:none">${a.msg} <span
-                            style="color:var(--muted); font-size:0.85em">↗</span></a>`
-                                : a.msg
-                            }</div>
-                            ${
-                              a.project
-                                ? `<div class="task-assignee"><a href="${projectUrl(a.project.id)}"
-                        target="_blank" rel="noopener"
-                            style="color:inherit; text-decoration:none"> ${a.project.name} <span
-                            style="color: var(--muted);font-size:0.85em"></span>↗ </a></div>`
-                                : ""
-                            }
-                                <span class="badge" style="background:${color}22;color:${color}">${label}</span>
-                              </div>`;
-                              })
-                              .join("")}</div>`;
+                                  <div class="stats-row" style="margin-bottom:20px">
+                                    <div class="stat-card "><div class="stat-label">Overdue Tasks</div><div class="stat-value">${counts.overdue}</div></div>
+                                    <div class="stat-card "><div class="stat-label">No Due Date</div><div class="stat-value">${counts.nodate}</div></div>
+                                    <div class="stat-card "><div class="stat-label">Inactive Projects</div><div class="stat-value">${counts.inactive}</div></div>
+                                    <div class="stat-card "><div class="stat-label">Overloaded People</div><div class="stat-value">${counts.overloaded}</div></div>
+                                  </div>
+                                  <div class="task-list">${alerts
+                                    .map((a) => {
+                                      const icon = {
+                                        overdue: "🔴",
+                                        nodate: "📅",
+                                        inactive: "⏸",
+                                        overloaded: "👤",
+                                      }[a.type];
+                                      const label = {
+                                        overdue: "Overdue",
+                                        nodate: "No Due Date",
+                                        inactive: "Inactive",
+                                        overloaded: "Overloaded",
+                                      }[a.type];
+                                      const color =
+                                        a.type === "overdue" ||
+                                        a.type === "overloaded"
+                                          ? "var(--red)"
+                                          : "var(--amber)";
+                                      return `<div class="task-item">
+                                      <span style="font-size:1.1rem">${icon}</span>
+                                  <div class="task-title">${
+                                    (a.type === "overdue" ||
+                                      a.type === "nodate") &&
+                                    a.task &&
+                                    a.task.app_url
+                                      ? `<a href = "${a.task.app_url}" target="_blank" rel="noopener"
+                                  style="color:inherit;text-decoration:none">${a.msg} <span
+                                  style="color:var(--muted); font-size:0.85em">↗</span></a>`
+                                      : a.msg
+                                  }</div>
+                                  ${
+                                    a.project
+                                      ? `<div class="task-assignee"><a href="${projectUrl(a.project.id)}"
+                              target="_blank" rel="noopener"
+                                  style="color:inherit; text-decoration:none"> ${a.project.name} <span
+                                  style="color: var(--muted);font-size:0.85em"></span>↗ </a></div>`
+                                      : ""
+                                  }
+                                      <span class="badge" style="background:${color}22;color:${color}">${label}</span>
+                                    </div>`;
+                                    })
+                                    .join("")}</div>`;
       }
 
       // MEMBER DETAIL VIEW
@@ -1047,24 +1054,15 @@
         if (!p) return;
         S.detailId = id;
 
-        // hide stats cards row, section headr, and projects grid
-        document.getElementById("project-stats").style.display = "none";
-        document.querySelector("#tab-projects .section-header").style.display =
-          "none";
-        document.getElementById("projects-grid").style.display = "none";
-
-        // display detailed view
-        const detail = document.getElementById("project-detail");
-        detail.style.display = "block";
+        document.getElementById("projects-layout").classList.add("split");
         renderProjectDetail(id);
       }
       // close detailed project view
       function closeProjectDetail() {
-        document.getElementById("project-detail").style.display = "none";
-        document.getElementById("project-stats").style.display = "";
-        document.querySelector("#tab-projects .section-header").style.display =
-          "";
-        document.getElementById("projects-grid").style.display = "";
+        S.detailId = null;
+
+        document.getElementById("projects-layout").classList.remove("split");
+        document.getElementById("project-detail").innerHTML = "";
       }
       // what renders inside detailed project view
       function renderProjectDetail(id) {
@@ -1096,17 +1094,17 @@
           const due = t.due_on || "No due date";
 
           return `<div class="kanban-card">
-                                  <div class = "kanban-card-title">${
-                                    t.app_url
-                                      ? `<a href = "${t.app_url}"
-                        target= "_blank" rel="noopener" style = "color:inherit; text-decoration:none">${t.title}
-                        <span style = "color:var(--muted);font-weight:400;font-size:0.85em">↗</span></a>`
-                                      : t.title
-                                  }</div>
-                        <div class = "kanban-card-meta">${assignee}</div>
-                        <div class = "kanban-card-meta">Assigned: ${created}</div>
-                        <div class = "kanban-card-meta">Due: ${due}</div>
-                        </div>`;
+                                        <div class = "kanban-card-title">${
+                                          t.app_url
+                                            ? `<a href = "${t.app_url}"
+                              target= "_blank" rel="noopener" style = "color:inherit; text-decoration:none">${t.title}
+                              <span style = "color:var(--muted);font-weight:400;font-size:0.85em">↗</span></a>`
+                                            : t.title
+                                        }</div>
+                              <div class = "kanban-card-meta">${assignee}</div>
+                              <div class = "kanban-card-meta">Assigned: ${created}</div>
+                              <div class = "kanban-card-meta">Due: ${due}</div>
+                              </div>`;
         }
 
         function taskRow(t) {
@@ -1119,19 +1117,30 @@
             ? new Date(t.due_on).toLocaleDateString()
             : "No due date";
 
+          const status = t.completed
+            ? "Done"
+            : isOverdue(t)
+              ? "Overdue"
+              : !t.due_on
+                ? "No due date"
+                : "Open";
+          const statusClass = {
+            Done: "badge-green",
+            Overdue: "badge-red",
+            "No due date": "badge-amber",
+            Open: "badge-accent",
+          }[status];
           return `<tr>
-                                  <td>${
-                                    t.app_url
-                                      ? `<a href = "${t.app_url}"
-                        target= "_blank" rel="noopener" style = "color:inherit; text-decoration:none">${t.title}
-                        <span style = "color:var(--muted);font-weight:400;font-size:0.85em">↗</span></a>`
-                                      : t.title
-                                  }</td>
-                        <td>${assignee}</td>
-                        <td>${status}</td>
-                        <td>${created}</td>
-                        <td>${due}</td>
-                        </tr>`;
+                                        <td>${
+                                          t.app_url
+                                            ? bcLink(t.app_url, t.title + " ")
+                                            : t.title
+                                        }</td>
+                              <td>${assignee}</td>
+                              <td><span class="badge ${statusClass}">${status}</span></td>
+                              <td>${created}</td>
+                              <td>${due}</td>
+                              </tr>`;
         }
         function compareByDue(a, b) {
           a = a.due_on;
@@ -1148,55 +1157,54 @@
           return new Date(a).getTime() - new Date(b).getTime();
         }
 
-        const sortedTasks = getOpen(id).slice().sort(compareByDue);
+        const sortedTasks = getTodos(id).slice().sort(compareByDue);
 
         document.getElementById("project-detail").innerHTML = `
-                        <div class = "detail-back" onclick="closeProjectDetail()"> ← Back to projects</div>
-                        <h2 class = "detail-project-name">${p.name} <a href="${projectUrl(p.id)}"
-                          target="_blank" rel="noopener" style="font-size:0.7em;color:var(--muted);text-decoration:none;margin-left:8px;font-weight:400" title = "Open in Basecamp">↗ </a></h2>
-                        ${
-                          firstTask
-                            ? `
-                        <div class="first-task-summary" style = "padding:10px 14px;margin-bottom:14px;background:
-                          var(--surface2);border-radius:8px;font-size:0.8rem; line-height:1.6">
-                          <div style="color:var(--muted); font-size:0.68rem;text-transform:uppercase;letter-spacing:0.5px;
-                            margin-bottom:4px">First assigned task</div>
-                        <div
-                            style="font-weight:600;color:var(--text);margin-bottom:4px">${firstTask.title}</div>
-                        <div style="color:var(--muted)">
-                          <span>Assignee: ${(firstTask.assignees || []).map((a) => a.name).join(", ") || "Unassigned"}</span>
-                          <span style = "margin:0 10px">·</span>
-                        <span>Assigned: ${new Date(firstTask.created_at).toLocaleDateString()}</span>
-                          <span style = "margin:0 10px">·</span>
+                              <div class = "detail-back" onclick="closeProjectDetail()"> ← Back to projects</div>
+                              <h2 class = "detail-project-name">${p.name} ${bcLink(projectUrl(p.id))}</h2>
+                              ${
+                                firstTask
+                                  ? `
+                              <div class="first-task-summary" style = "padding:10px 14px;margin-bottom:14px;background:
+                                var(--surface2);border-radius:8px;font-size:0.8rem; line-height:1.6">
+                                <div style="color:var(--muted); font-size:0.68rem;text-transform:uppercase;letter-spacing:0.5px;
+                                  margin-bottom:4px">First assigned task</div>
+                              <div
+                                  style="font-weight:600;color:var(--text);margin-bottom:4px">${firstTask.title}</div>
+                              <div style="color:var(--muted)">
+                                <span>Assignee: ${(firstTask.assignees || []).map((a) => a.name).join(", ") || "Unassigned"}</span>
+                                <span style = "margin:0 10px">·</span>
+                              <span>Assigned: ${new Date(firstTask.created_at).toLocaleDateString()}</span>
+                                <span style = "margin:0 10px">·</span>
 
-                        <span>Due: ${firstTask.due_on ? new Date(firstTask.due_on).toLocaleDateString() : "No due date"}</span>
-                        </div>
-                        </div>`
-                            : ""
-                        }
-                        <div class = "detail-chips">
-                          <span class = "badge badge-green">${total} total </span>
-                          <span class = "badge badge-green">${open.length} open </span>
-                          <span class = "badge badge-red">${overdue.length} overdue </span>
-                          <span class = "badge badge-amber">${nodate.length} no date </span>
-                          <span class = "badge" style="background:var(--surface2);color:var(--muted)">${done.length} done </span>
-                        </div>
-                                   <table class="task-table">
-        <thead>
-          <tr>
-            <th>Task</th>
-            <th>Assignee</th>
-            <th>Status</th>
-            <th>Assigned Date</th>
-            <th>Due Date</th>
+                              <span>Due: ${firstTask.due_on ? new Date(firstTask.due_on).toLocaleDateString() : "No due date"}</span>
+                              </div>
+                              </div>`
+                                  : ""
+                              }
+                              <div class = "detail-chips">
+                                <span class = "badge badge-green">${total} total </span>
+                                <span class = "badge badge-green">${open.length} open </span>
+                                <span class = "badge badge-red">${overdue.length} overdue </span>
+                                <span class = "badge badge-amber">${nodate.length} no date </span>
+                                <span class = "badge" style="background:var(--surface2);color:var(--muted)">${done.length} done </span>
+                              </div>
+                                         <table class="task-table">
+              <thead>
+                <tr>
+                  <th>Task</th>
+                  <th>Assignee</th>
+                  <th>Status</th>
+                  <th>Assigned Date</th>
+                  <th>Due Date</th>
 
 
-          </tr>
-        </thead>
-        <tbody>
-        ${sortedTasks.length ? sortedTasks.map(taskRow).join("") : `<tr><td colspan="4"> No Uncompleted Open Tasks on This Project</td></tr>`}
-        </tbody>
-      </table>     `;
+                </tr>
+              </thead>
+              <tbody>
+              ${sortedTasks.length ? sortedTasks.map(taskRow).join("") : `<tr><td colspan="4"> No tasks on this project</td></tr>`}
+              </tbody>
+            </table>     `;
       }
       autoConnect();
     </script>
