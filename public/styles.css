@@ -76,7 +76,11 @@ body {
 #setup-screen h1 {
   font-size: var(--text-xl);
   font-weight: 800;
-  color: var(--accent);
+  background: linear-gradient(to right, var(--accent), var(--secondary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
   letter-spacing: -1px;
 }
 #setup-screen p {
@@ -177,7 +181,11 @@ body {
 .topbar-logo {
   font-weight: 800;
   font-size: var(--text-md);
-  color: var(--accent);
+  background: linear-gradient(to right, var(--accent), var(--secondary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
   letter-spacing: -0.5px;
   white-space: nowrap;
 }
