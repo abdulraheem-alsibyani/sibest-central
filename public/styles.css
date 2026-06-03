@@ -142,7 +142,7 @@ body {
   letter-spacing: 0.02em;
 }
 .btn-primary:hover {
-  background: var(--secondary);
+  background: var(--accent-dim);
   transform: translateY(-1px);
 }
 .btn-primary:disabled {
